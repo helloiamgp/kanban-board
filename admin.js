@@ -134,8 +134,8 @@ function renderCompanies() {
                 <td><span class="badge badge-success">${personCount} Personel</span></td>
                 <td>
                     <div class="actions">
-                        <button class="btn btn-primary" onclick="editCompany(${index})">Düzenle</button>
-                        <button class="btn btn-danger" onclick="deleteCompany(${index})">Sil</button>
+                        <button class="btn btn-primary btn-icon" onclick="editCompany(${index})" title="Düzenle">✏️</button>
+                        <button class="btn btn-danger btn-icon" onclick="deleteCompany(${index})" title="Sil">🗑️</button>
                     </div>
                 </td>
             </tr>
@@ -239,8 +239,8 @@ function renderDepartmentsInModal(departments) {
                     <div class="nested-item-detail">ID: ${dept.id} • ${personCount} Personel</div>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-sm" onclick="editDepartment(${index})">Düzenle</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteDepartment(${index})">Sil</button>
+                    <button class="btn btn-primary btn-icon" onclick="editDepartment(${index})" title="Düzenle">✏️</button>
+                    <button class="btn btn-danger btn-icon" onclick="deleteDepartment(${index})" title="Sil">🗑️</button>
                 </div>
             </div>
         `;
@@ -349,8 +349,8 @@ function renderPersonsInModal(persons) {
                     <div class="nested-item-detail">ID: ${person.id} • ${person.email}</div>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-sm" onclick="editPerson(${index})">Düzenle</button>
-                    <button class="btn btn-danger btn-sm" onclick="deletePerson(${index})">Sil</button>
+                    <button class="btn btn-primary btn-icon" onclick="editPerson(${index})" title="Düzenle">✏️</button>
+                    <button class="btn btn-danger btn-icon" onclick="deletePerson(${index})" title="Sil">🗑️</button>
                 </div>
             </div>
         `;
@@ -464,8 +464,8 @@ function renderConfigList(type, containerId) {
                     <div class="nested-item-detail">ID: ${item.id}</div>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-sm" onclick="editConfigItem('${type}', ${index})">Düzenle</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteConfigItem('${type}', ${index})">Sil</button>
+                    <button class="btn btn-primary btn-icon" onclick="editConfigItem('${type}', ${index})" title="Düzenle">✏️</button>
+                    <button class="btn btn-danger btn-icon" onclick="deleteConfigItem('${type}', ${index})" title="Sil">🗑️</button>
                 </div>
             </div>
         `;
