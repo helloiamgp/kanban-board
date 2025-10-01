@@ -1,0 +1,23 @@
+# JSON veri dosyaları (isteğe bağlı olarak ignore edilebilir)
+# data/*.json
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*

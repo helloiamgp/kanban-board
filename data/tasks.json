@@ -1,0 +1,80 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Proje planlaması",
+      "description": "Q4 için proje yol haritasını oluştur",
+      "status": "todo",
+      "taskType": "request",
+      "companyId": 1,
+      "departmentId": 101,
+      "assignedToId": 1001,
+      "category": "feature",
+      "requester": "Yönetim Kurulu",
+      "businessJustification": "Şirket stratejik hedeflerine uyum",
+      "priority": "high",
+      "affectedUsers": 50,
+      "expectedCompletion": "2024-12-31",
+      "date": "01.10.2025",
+      "history": []
+    },
+    {
+      "id": 2,
+      "title": "API geliştirme",
+      "description": "REST API endpoint'lerini tamamla",
+      "status": "inprogress",
+      "taskType": "change",
+      "companyId": 2,
+      "departmentId": 201,
+      "assignedToId": 2001,
+      "category": "feature",
+      "changeType": "standard",
+      "riskLevel": "low",
+      "impactLevel": "medium",
+      "rollbackPlan": "Önceki API versiyonunu geri yükle",
+      "implementationDate": "2024-11-15T02:00",
+      "priority": "medium",
+      "date": "01.10.2025",
+      "history": [
+        {
+          "date": "25.09.2024 14:30",
+          "changes": [
+            {
+              "field": "Durum",
+              "oldValue": "Yapılacak",
+              "newValue": "Devam Eden"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Logo tasarımı",
+      "description": "Yeni logo konseptlerini hazırla",
+      "status": "done",
+      "taskType": "request",
+      "companyId": 1,
+      "departmentId": 101,
+      "assignedToId": 1002,
+      "category": "feature",
+      "requester": "Pazarlama Direktörü",
+      "businessJustification": "Marka yenileme projesi",
+      "priority": "low",
+      "affectedUsers": 5,
+      "date": "01.10.2025",
+      "history": [
+        {
+          "date": "20.09.2024 10:15",
+          "changes": [
+            {
+              "field": "Durum",
+              "oldValue": "Devam Eden",
+              "newValue": "Tamamlandı"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

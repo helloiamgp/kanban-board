@@ -1,0 +1,84 @@
+{
+  "changeTypes": [
+    {
+      "id": "normal",
+      "name": "Normal Change"
+    },
+    {
+      "id": "standard",
+      "name": "Standard Change"
+    },
+    {
+      "id": "emergency",
+      "name": "Emergency Change"
+    }
+  ],
+  "riskLevels": [
+    {
+      "id": "low",
+      "name": "Düşük Risk"
+    },
+    {
+      "id": "medium",
+      "name": "Orta Risk"
+    },
+    {
+      "id": "high",
+      "name": "Yüksek Risk"
+    }
+  ],
+  "impactLevels": [
+    {
+      "id": "low",
+      "name": "Düşük Etki"
+    },
+    {
+      "id": "medium",
+      "name": "Orta Etki"
+    },
+    {
+      "id": "high",
+      "name": "Yüksek Etki"
+    }
+  ],
+  "priorities": [
+    {
+      "id": "low",
+      "name": "Düşük Öncelik"
+    },
+    {
+      "id": "medium",
+      "name": "Orta Öncelik"
+    },
+    {
+      "id": "high",
+      "name": "Yüksek Öncelik"
+    }
+  ],
+  "categories": [
+    {
+      "id": "bug",
+      "name": "Hata Düzeltme"
+    },
+    {
+      "id": "feature",
+      "name": "Yeni Özellik"
+    },
+    {
+      "id": "maintenance",
+      "name": "Bakım"
+    },
+    {
+      "id": "security",
+      "name": "Güvenlik"
+    },
+    {
+      "id": "documentation",
+      "name": "Dokümantasyon"
+    },
+    {
+      "id": "support",
+      "name": "Destek Talebi"
+    }
+  ]
+}

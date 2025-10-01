@@ -795,6 +795,14 @@
     <div class="header">
         <h1>📋 Kanban Board</h1>
         <p>Görevlerinizi sürükle-bırak ile yönetin</p>
+        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; align-items: center;">
+            <button onclick="saveAllData()" style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                💾 Tüm Verileri Dışa Aktar
+            </button>
+            <span style="font-size: 12px; color: #7f8c8d;">
+                ℹ️ Veriler otomatik kaydedilir ve tarayıcıdan indirilir
+            </span>
+        </div>
     </div>
 
     <div class="add-task-btn-container">
@@ -1291,9 +1299,16 @@
     </div>
 
     <script>
-        // ============ JSON Configuration Files ============
-        
-        const companiesConfig = {
+        // ============ JSON File Management System ============
+
+        const JSON_FILES = {
+            COMPANIES: './data/companies.json',
+            TASKS: './data/tasks.json',
+            CONFIG: './data/config.json'
+        };
+
+        // Default data structures
+        const DEFAULT_COMPANIES = {
             companies: [
                 {
                     id: 1,
@@ -1353,39 +1368,27 @@
             ]
         };
 
-        const changeTypesConfig = {
-            types: [
+        const DEFAULT_CONFIG = {
+            changeTypes: [
                 { id: "normal", name: "Normal Change" },
                 { id: "standard", name: "Standard Change" },
                 { id: "emergency", name: "Emergency Change" }
-            ]
-        };
-
-        const riskLevelsConfig = {
-            levels: [
+            ],
+            riskLevels: [
                 { id: "low", name: "Düşük Risk" },
                 { id: "medium", name: "Orta Risk" },
                 { id: "high", name: "Yüksek Risk" }
-            ]
-        };
-
-        const impactLevelsConfig = {
-            levels: [
+            ],
+            impactLevels: [
                 { id: "low", name: "Düşük Etki" },
                 { id: "medium", name: "Orta Etki" },
                 { id: "high", name: "Yüksek Etki" }
-            ]
-        };
-
-        const prioritiesConfig = {
+            ],
             priorities: [
                 { id: "low", name: "Düşük Öncelik" },
                 { id: "medium", name: "Orta Öncelik" },
                 { id: "high", name: "Yüksek Öncelik" }
-            ]
-        };
-
-        const categoriesConfig = {
+            ],
             categories: [
                 { id: "bug", name: "Hata Düzeltme" },
                 { id: "feature", name: "Yeni Özellik" },
@@ -1396,71 +1399,171 @@
             ]
         };
 
-        // ============ Task Data ============
-        let tasks = [
-            {
-                id: 1,
-                title: "Proje planlaması",
-                description: "Q4 için proje yol haritasını oluştur",
-                status: "todo",
-                taskType: "request",
-                companyId: 1,
-                departmentId: 101,
-                assignedToId: 1001,
-                category: "feature",
-                requester: "Yönetim Kurulu",
-                businessJustification: "Şirket stratejik hedeflerine uyum",
-                priority: "high",
-                affectedUsers: 50,
-                expectedCompletion: "2024-12-31",
-                date: new Date().toLocaleDateString('tr-TR'),
-                history: []
-            },
-            {
-                id: 2,
-                title: "API geliştirme",
-                description: "REST API endpoint'lerini tamamla",
-                status: "inprogress",
-                taskType: "change",
-                companyId: 2,
-                departmentId: 201,
-                assignedToId: 2001,
-                category: "feature",
-                changeType: "standard",
-                riskLevel: "low",
-                impactLevel: "medium",
-                rollbackPlan: "Önceki API versiyonunu geri yükle",
-                implementationDate: "2024-11-15T02:00",
-                priority: "medium",
-                date: new Date().toLocaleDateString('tr-TR'),
-                history: [{
-                    date: "25.09.2024 14:30",
-                    changes: [{ field: "Durum", oldValue: "Yapılacak", newValue: "Devam Eden" }]
-                }]
-            },
-            {
-                id: 3,
-                title: "Logo tasarımı",
-                description: "Yeni logo konseptlerini hazırla",
-                status: "done",
-                taskType: "request",
-                companyId: 1,
-                departmentId: 101,
-                assignedToId: 1002,
-                category: "feature",
-                requester: "Pazarlama Direktörü",
-                businessJustification: "Marka yenileme projesi",
-                priority: "low",
-                affectedUsers: 5,
-                date: new Date().toLocaleDateString('tr-TR'),
-                history: [
-                    {
-                        date: "20.09.2024 10:15",
-                        changes: [{ field: "Durum", oldValue: "Devam Eden", newValue: "Tamamlandı" }]
-                    }
-                ]
+        const DEFAULT_TASKS = {
+            tasks: [
+                {
+                    id: 1,
+                    title: "Proje planlaması",
+                    description: "Q4 için proje yol haritasını oluştur",
+                    status: "todo",
+                    taskType: "request",
+                    companyId: 1,
+                    departmentId: 101,
+                    assignedToId: 1001,
+                    category: "feature",
+                    requester: "Yönetim Kurulu",
+                    businessJustification: "Şirket stratejik hedeflerine uyum",
+                    priority: "high",
+                    affectedUsers: 50,
+                    expectedCompletion: "2024-12-31",
+                    date: new Date().toLocaleDateString('tr-TR'),
+                    history: []
+                },
+                {
+                    id: 2,
+                    title: "API geliştirme",
+                    description: "REST API endpoint'lerini tamamla",
+                    status: "inprogress",
+                    taskType: "change",
+                    companyId: 2,
+                    departmentId: 201,
+                    assignedToId: 2001,
+                    category: "feature",
+                    changeType: "standard",
+                    riskLevel: "low",
+                    impactLevel: "medium",
+                    rollbackPlan: "Önceki API versiyonunu geri yükle",
+                    implementationDate: "2024-11-15T02:00",
+                    priority: "medium",
+                    date: new Date().toLocaleDateString('tr-TR'),
+                    history: [{
+                        date: "25.09.2024 14:30",
+                        changes: [{ field: "Durum", oldValue: "Yapılacak", newValue: "Devam Eden" }]
+                    }]
+                },
+                {
+                    id: 3,
+                    title: "Logo tasarımı",
+                    description: "Yeni logo konseptlerini hazırla",
+                    status: "done",
+                    taskType: "request",
+                    companyId: 1,
+                    departmentId: 101,
+                    assignedToId: 1002,
+                    category: "feature",
+                    requester: "Pazarlama Direktörü",
+                    businessJustification: "Marka yenileme projesi",
+                    priority: "low",
+                    affectedUsers: 5,
+                    date: new Date().toLocaleDateString('tr-TR'),
+                    history: [
+                        {
+                            date: "20.09.2024 10:15",
+                            changes: [{ field: "Durum", oldValue: "Devam Eden", newValue: "Tamamlandı" }]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Global data holders
+        let companiesConfig = DEFAULT_COMPANIES;
+        let changeTypesConfig = { types: DEFAULT_CONFIG.changeTypes };
+        let riskLevelsConfig = { levels: DEFAULT_CONFIG.riskLevels };
+        let impactLevelsConfig = { levels: DEFAULT_CONFIG.impactLevels };
+        let prioritiesConfig = { priorities: DEFAULT_CONFIG.priorities };
+        let categoriesConfig = { categories: DEFAULT_CONFIG.categories };
+        let tasks = DEFAULT_TASKS.tasks;
+
+        // ============ JSON File Operations ============
+
+        async function loadJSONFile(url, defaultData) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.warn(`${url} bulunamadı, varsayılan veri kullanılıyor`);
+                    return defaultData;
+                }
+                return await response.json();
+            } catch (error) {
+                console.warn(`${url} yüklenemedi:`, error.message);
+                return defaultData;
             }
-        ];
+        }
+
+        async function saveJSONFile(url, data) {
+            try {
+                // Browser'da dosya yazma işlemi yapılamaz, bu yüzden download olarak sunuyoruz
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const downloadUrl = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = url.split('/').pop();
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+
+                console.log(`${url} indirildi`);
+                return true;
+            } catch (error) {
+                console.error(`${url} kaydedilemedi:`, error);
+                return false;
+            }
+        }
+
+        async function loadAllData() {
+            console.log('JSON dosyaları yükleniyor...');
+
+            // Load companies
+            const companiesData = await loadJSONFile(JSON_FILES.COMPANIES, DEFAULT_COMPANIES);
+            companiesConfig = companiesData;
+
+            // Load config
+            const configData = await loadJSONFile(JSON_FILES.CONFIG, DEFAULT_CONFIG);
+            changeTypesConfig = { types: configData.changeTypes };
+            riskLevelsConfig = { levels: configData.riskLevels };
+            impactLevelsConfig = { levels: configData.impactLevels };
+            prioritiesConfig = { priorities: configData.priorities };
+            categoriesConfig = { categories: configData.categories };
+
+            // Load tasks
+            const tasksData = await loadJSONFile(JSON_FILES.TASKS, DEFAULT_TASKS);
+            tasks = tasksData.tasks || [];
+
+            console.log('Veri yükleme tamamlandı');
+
+            // Initialize UI
+            populateWizardDropdowns();
+            populateEditDropdowns();
+            renderTasks();
+        }
+
+        async function saveAllData() {
+            console.log('Tüm veriler kaydediliyor...');
+
+            await saveJSONFile(JSON_FILES.COMPANIES, companiesConfig);
+            await saveJSONFile(JSON_FILES.CONFIG, {
+                changeTypes: changeTypesConfig.types,
+                riskLevels: riskLevelsConfig.levels,
+                impactLevels: impactLevelsConfig.levels,
+                priorities: prioritiesConfig.priorities,
+                categories: categoriesConfig.categories
+            });
+            await saveJSONFile(JSON_FILES.TASKS, { tasks: tasks });
+
+            alert('Veriler JSON dosyaları olarak indirildi!\nİndirilen dosyaları ./data/ klasörüne yerleştirin.');
+        }
+
+        async function saveTasks() {
+            await saveJSONFile(JSON_FILES.TASKS, { tasks: tasks });
+        }
+
+        async function saveCompanies() {
+            await saveJSONFile(JSON_FILES.COMPANIES, companiesConfig);
+        }
 
         let draggedElement = null;
         let currentEditId = null;
@@ -2440,6 +2543,7 @@
             }
 
             tasks.push(newTask);
+            saveTasks(); // Auto-save to JSON
             renderTasks();
             closeWizard();
         }
@@ -2574,6 +2678,7 @@
         function deleteTask(id) {
             if (confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
                 tasks = tasks.filter(task => task.id !== id);
+                saveTasks(); // Auto-save to JSON
                 renderTasks();
             }
         }
@@ -2830,9 +2935,11 @@
                     changes: changes
                 });
 
+                saveTasks(); // Auto-save to JSON
                 renderTasks();
                 renderHistory(task.history);
             } else {
+                saveTasks(); // Auto-save to JSON
                 renderTasks();
             }
         }
@@ -2912,6 +3019,7 @@
                         });
 
                         task.status = newStatus;
+                        saveTasks(); // Auto-save to JSON
                         renderTasks();
                     }
                 }
@@ -2932,10 +3040,10 @@
         });
 
         // Initialize
-        populateWizardDropdowns();
-        populateEditDropdowns();
-        setupFieldValidation();
-        renderTasks();
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAllData();
+            setupFieldValidation();
+        });
     </script>
 </body>
 </html>

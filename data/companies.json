@@ -1,0 +1,87 @@
+{
+  "companies": [
+    {
+      "id": 1,
+      "name": "ABC Teknoloji",
+      "departments": [
+        {
+          "id": 101,
+          "name": "IT",
+          "persons": [
+            {
+              "id": 1001,
+              "name": "Ahmet Yılmaz",
+              "email": "ahmet@abc.com"
+            },
+            {
+              "id": 1002,
+              "name": "Mehmet Kaya",
+              "email": "mehmet@abc.com"
+            }
+          ]
+        },
+        {
+          "id": 102,
+          "name": "Finans",
+          "persons": [
+            {
+              "id": 1003,
+              "name": "Zeynep Aydın",
+              "email": "zeynep@abc.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "XYZ Yazılım",
+      "departments": [
+        {
+          "id": 201,
+          "name": "Geliştirme",
+          "persons": [
+            {
+              "id": 2001,
+              "name": "Ayşe Demir",
+              "email": "ayse@xyz.com"
+            },
+            {
+              "id": 2002,
+              "name": "Can Öztürk",
+              "email": "can@xyz.com"
+            }
+          ]
+        },
+        {
+          "id": 202,
+          "name": "Destek",
+          "persons": [
+            {
+              "id": 2003,
+              "name": "Elif Yıldız",
+              "email": "elif@xyz.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "DEF Danışmanlık",
+      "departments": [
+        {
+          "id": 301,
+          "name": "Proje Yönetimi",
+          "persons": [
+            {
+              "id": 3001,
+              "name": "Ali Çelik",
+              "email": "ali@def.com"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
