@@ -31,6 +31,36 @@
             font-weight: 700;
         }
 
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(155,89,182,0.3);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .admin-btn:hover {
+            background: #8e44ad;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(155,89,182,0.4);
+        }
+
+        .admin-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
         .add-task-btn-container {
             text-align: center;
             margin-bottom: 30px;
@@ -808,23 +838,24 @@
     </style>
 </head>
 <body>
+    <!-- Floating Admin Button -->
+    <button class="admin-btn" onclick="location.href='admin.html'" title="Admin Panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+            <path d="M19.07 4.93l-4.24 4.24m-5.66 0L4.93 4.93m0 14.14l4.24-4.24m5.66 0l4.24 4.24"></path>
+        </svg>
+    </button>
+
     <div class="header">
         <h1>📋 Kanban Board</h1>
         <p>Görevlerinizi sürükle-bırak ile yönetin</p>
-        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap;">
-            <button onclick="location.href='admin.html'" style="background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                ⚙️ Admin Panel
-            </button>
-            <button onclick="saveAllData()" style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                💾 Tüm Verileri Dışa Aktar
-            </button>
-            <span style="font-size: 12px; color: #7f8c8d;">
-                ℹ️ Veriler otomatik kaydedilir ve tarayıcıdan indirilir
-            </span>
-        </div>
     </div>
 
-    <div class="add-task-btn-container">
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap;">
+        <a href="dashboard.html" style="background: white; border: 2px solid #e1e8ed; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; color: #2c3e50; text-decoration: none; transition: all 0.2s;">
+            📊 Dashboard
+        </a>
         <button class="add-task-trigger" onclick="openWizard()">+ Yeni Görev Ekle</button>
     </div>
 
@@ -1419,70 +1450,7 @@
         };
 
         const DEFAULT_TASKS = {
-            tasks: [
-                {
-                    id: 1,
-                    title: "Proje planlaması",
-                    description: "Q4 için proje yol haritasını oluştur",
-                    status: "todo",
-                    taskType: "request",
-                    companyId: 1,
-                    departmentId: 101,
-                    assignedToId: 1001,
-                    category: "feature",
-                    requester: "Yönetim Kurulu",
-                    businessJustification: "Şirket stratejik hedeflerine uyum",
-                    priority: "high",
-                    affectedUsers: 50,
-                    expectedCompletion: "2024-12-31",
-                    date: new Date().toLocaleDateString('tr-TR'),
-                    history: []
-                },
-                {
-                    id: 2,
-                    title: "API geliştirme",
-                    description: "REST API endpoint'lerini tamamla",
-                    status: "inprogress",
-                    taskType: "change",
-                    companyId: 2,
-                    departmentId: 201,
-                    assignedToId: 2001,
-                    category: "feature",
-                    changeType: "standard",
-                    riskLevel: "low",
-                    impactLevel: "medium",
-                    rollbackPlan: "Önceki API versiyonunu geri yükle",
-                    implementationDate: "2024-11-15T02:00",
-                    priority: "medium",
-                    date: new Date().toLocaleDateString('tr-TR'),
-                    history: [{
-                        date: "25.09.2024 14:30",
-                        changes: [{ field: "Durum", oldValue: "Yapılacak", newValue: "Devam Eden" }]
-                    }]
-                },
-                {
-                    id: 3,
-                    title: "Logo tasarımı",
-                    description: "Yeni logo konseptlerini hazırla",
-                    status: "done",
-                    taskType: "request",
-                    companyId: 1,
-                    departmentId: 101,
-                    assignedToId: 1002,
-                    category: "feature",
-                    requester: "Pazarlama Direktörü",
-                    businessJustification: "Marka yenileme projesi",
-                    priority: "low",
-                    affectedUsers: 5,
-                    date: new Date().toLocaleDateString('tr-TR'),
-                    history: [
-                        {
-                            date: "20.09.2024 10:15",
-                            changes: [{ field: "Durum", oldValue: "Devam Eden", newValue: "Tamamlandı" }]
-                        }
-                    ]
-                }
-            ]
+            tasks: []
         };
 
         // Global data holders

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Kanban Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #212121;
+        }
+
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(155,89,182,0.3);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .admin-btn:hover {
+            background: #8e44ad;
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(155,89,182,0.4);
+        }
+
+        .admin-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: white;
+            border: 2px solid #e1e8ed;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .nav-tab:hover {
+            border-color: #0066cc;
+            background: #f0f8ff;
+            transform: translateY(-1px);
+        }
+
+        .nav-tab.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon.blue { background: #e3f2fd; }
+        .stat-icon.orange { background: #fff3e0; }
+        .stat-icon.green { background: #e8f5e9; }
+        .stat-icon.red { background: #ffebee; }
+        .stat-icon.purple { background: #f3e5f5; }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .chart-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+            margin-bottom: 30px;
+        }
+
+        .chart-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .progress-bar-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 24px;
+            background: #e1e8ed;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .progress-fill.blue { background: #0066cc; }
+        .progress-fill.orange { background: #f39c12; }
+        .progress-fill.green { background: #48bb78; }
+
+        .recent-tasks {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+        }
+
+        .task-item {
+            padding: 16px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .task-item:hover {
+            background: #f8f9fa;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .task-info p {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .task-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-todo { background: #e3f2fd; color: #1565c0; }
+        .badge-inprogress { background: #fff3e0; color: #f57c00; }
+        .badge-done { background: #e8f5e9; color: #2e7d32; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Admin Button -->
+    <button class="admin-btn" onclick="location.href='admin.html'" title="Admin Panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"></path>
+            <path d="M19.07 4.93l-4.24 4.24m-5.66 0L4.93 4.93m0 14.14l4.24-4.24m5.66 0l4.24 4.24"></path>
+        </svg>
+    </button>
+
+    <div class="header">
+        <h1>📊 Dashboard</h1>
+        <p>Görev ve proje istatistikleri</p>
+    </div>
+
+    <div class="nav-tabs">
+        <a href="dashboard.html" class="nav-tab active">📊 Dashboard</a>
+        <a href="kanban-board.html" class="nav-tab">📋 Kanban Board</a>
+    </div>
+
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">📋</div>
+                <div class="stat-value" id="totalTasks">0</div>
+                <div class="stat-label">Toplam Görev</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">⏳</div>
+                <div class="stat-value" id="inProgressTasks">0</div>
+                <div class="stat-label">Devam Eden</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">✅</div>
+                <div class="stat-value" id="completedTasks">0</div>
+                <div class="stat-label">Tamamlanan</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">👥</div>
+                <div class="stat-value" id="totalPersons">0</div>
+                <div class="stat-label">Toplam Personel</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon red">🔥</div>
+                <div class="stat-value" id="highPriorityTasks">0</div>
+                <div class="stat-label">Yüksek Öncelik</div>
+            </div>
+        </div>
+
+        <!-- Progress Charts -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">Görev Durumu Dağılımı</h2>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span><strong>Yapılacak</strong></span>
+                    <span id="todoCount">0 görev</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill blue" id="todoBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span><strong>Devam Eden</strong></span>
+                    <span id="inprogressCount">0 görev</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill orange" id="inprogressBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-label">
+                    <span><strong>Tamamlandı</strong></span>
+                    <span id="doneCount">0 görev</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill green" id="doneBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="recent-tasks">
+            <div class="chart-header">
+                <h2 class="chart-title">Son Güncellenen Görevler</h2>
+            </div>
+            <div id="recentTasksList"></div>
+        </div>
+    </div>
+
+    <script>
+        const JSON_FILES = {
+            TASKS: './data/tasks.json',
+            COMPANIES: './data/companies.json'
+        };
+
+        let tasksData = { tasks: [] };
+        let companiesData = { companies: [] };
+
+        async function loadData() {
+            try {
+                const [tasksResponse, companiesResponse] = await Promise.all([
+                    fetch(JSON_FILES.TASKS),
+                    fetch(JSON_FILES.COMPANIES)
+                ]);
+
+                if (tasksResponse.ok) {
+                    tasksData = await tasksResponse.json();
+                }
+
+                if (companiesResponse.ok) {
+                    companiesData = await companiesResponse.json();
+                }
+
+                updateDashboard();
+            } catch (error) {
+                console.error('Veri yüklenemedi:', error);
+                updateDashboard();
+            }
+        }
+
+        function updateDashboard() {
+            const tasks = tasksData.tasks || [];
+
+            // Calculate stats
+            const totalTasks = tasks.length;
+            const todoTasks = tasks.filter(t => t.status === 'todo').length;
+            const inProgressTasks = tasks.filter(t => t.status === 'inprogress').length;
+            const completedTasks = tasks.filter(t => t.status === 'done').length;
+            const highPriorityTasks = tasks.filter(t => t.priority === 'high').length;
+
+            // Count total persons
+            let totalPersons = 0;
+            companiesData.companies?.forEach(company => {
+                company.departments?.forEach(dept => {
+                    totalPersons += dept.persons?.length || 0;
+                });
+            });
+
+            // Update stat cards
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('inProgressTasks').textContent = inProgressTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('totalPersons').textContent = totalPersons;
+            document.getElementById('highPriorityTasks').textContent = highPriorityTasks;
+
+            // Update progress bars
+            const todoPercent = totalTasks > 0 ? (todoTasks / totalTasks * 100).toFixed(0) : 0;
+            const inprogressPercent = totalTasks > 0 ? (inProgressTasks / totalTasks * 100).toFixed(0) : 0;
+            const donePercent = totalTasks > 0 ? (completedTasks / totalTasks * 100).toFixed(0) : 0;
+
+            document.getElementById('todoCount').textContent = `${todoTasks} görev`;
+            document.getElementById('todoBar').style.width = `${todoPercent}%`;
+            document.getElementById('todoBar').textContent = `${todoPercent}%`;
+
+            document.getElementById('inprogressCount').textContent = `${inProgressTasks} görev`;
+            document.getElementById('inprogressBar').style.width = `${inprogressPercent}%`;
+            document.getElementById('inprogressBar').textContent = `${inprogressPercent}%`;
+
+            document.getElementById('doneCount').textContent = `${completedTasks} görev`;
+            document.getElementById('doneBar').style.width = `${donePercent}%`;
+            document.getElementById('doneBar').textContent = `${donePercent}%`;
+
+            // Update recent tasks
+            renderRecentTasks(tasks);
+        }
+
+        function renderRecentTasks(tasks) {
+            const container = document.getElementById('recentTasksList');
+
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div style="font-size: 18px; margin-bottom: 8px;">Henüz görev yok</div>
+                        <div style="font-size: 14px;">Yeni görev eklemek için Kanban Board sayfasını kullanın</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by date (most recent first) and take first 10
+            const recentTasks = [...tasks]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
+
+            let html = '';
+            recentTasks.forEach(task => {
+                const statusBadge = {
+                    'todo': '<span class="task-badge badge-todo">Yapılacak</span>',
+                    'inprogress': '<span class="task-badge badge-inprogress">Devam Eden</span>',
+                    'done': '<span class="task-badge badge-done">Tamamlandı</span>'
+                }[task.status] || '';
+
+                html += `
+                    <div class="task-item">
+                        <div class="task-info">
+                            <h4>${task.title}</h4>
+                            <p>${task.description || 'Açıklama yok'}</p>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
