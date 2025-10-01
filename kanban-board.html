@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #212121;
+        }
+
+        .header {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .add-task-btn-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .add-task-trigger {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,102,204,0.2);
+        }
+
+        .add-task-trigger:hover {
+            background: #0052a3;
+            box-shadow: 0 4px 8px rgba(0,102,204,0.3);
+            transform: translateY(-1px);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .column {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 400px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+        }
+
+        .column-header {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .column-header .count {
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .column[data-status="todo"] .column-header {
+            border-color: #5a67d8;
+            color: #5a67d8;
+        }
+
+        .column[data-status="inprogress"] .column-header {
+            border-color: #ed8936;
+            color: #ed8936;
+        }
+
+        .column[data-status="done"] .column-header {
+            border-color: #48bb78;
+            color: #48bb78;
+        }
+
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: move;
+            transition: all 0.3s;
+            border-left: 4px solid;
+        }
+
+        .task:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .task.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .task[data-status="todo"] {
+            border-color: #5a67d8;
+        }
+
+        .task[data-status="inprogress"] {
+            border-color: #ed8936;
+        }
+
+        .task[data-status="done"] {
+            border-color: #48bb78;
+        }
+
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1.05em;
+        }
+
+        .task-description {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .task-badge-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .task-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .task-person {
+            background: #ebf4ff;
+            color: #3182ce;
+        }
+
+        .task-company {
+            background: #f0fdf4;
+            color: #059669;
+        }
+
+        .task-priority-high {
+            background: #fee;
+            color: #c53030;
+        }
+
+        .task-priority-medium {
+            background: #fef5e7;
+            color: #d68910;
+        }
+
+        .task-priority-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .task-change-emergency {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .task-change-normal {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .task-change-standard {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .task-risk-high {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .task-risk-medium {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .task-risk-low {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-date {
+            font-size: 0.8em;
+            color: #95a5a6;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .edit-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.3s;
+        }
+
+        .edit-btn:hover {
+            background: #0052a3;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .column.drag-over {
+            background: rgba(90, 103, 216, 0.05);
+            border: 2px dashed #5a67d8;
+        }
+
+        /* Modern Modal & Wizard Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 680px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #7f8c8d;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #2c3e50;
+        }
+
+        /* Progress Indicator */
+        .wizard-progress {
+            padding: 24px 32px;
+            background: #fafafa;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e1e8ed;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-number {
+            background: #0066cc;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(0,102,204,0.1);
+        }
+
+        .progress-step.completed .step-number {
+            background: #48bb78;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .progress-step.active .step-label {
+            color: #0066cc;
+            font-weight: 600;
+        }
+
+        /* Wizard Content */
+        .wizard-body {
+            padding: 32px;
+        }
+
+        .wizard-step {
+            display: none;
+        }
+
+        .wizard-step.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .step-description {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 32px;
+        }
+
+        /* Form Fields - Modern IFTA Style */
+        .form-field {
+            margin-bottom: 24px;
+        }
+
+        .form-field-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-label {
+            position: absolute;
+            top: 8px;
+            left: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #616161;
+            pointer-events: none;
+            transition: all 0.2s;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            height: 60px;
+            padding: 24px 16px 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            color: #212121;
+            background: white;
+            transition: all 0.15s;
+        }
+
+        .form-textarea {
+            height: 100px;
+            resize: vertical;
+            padding-top: 28px;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border: 2px solid #0066cc;
+            padding-left: 15px;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .form-input.error,
+        .form-select.error,
+        .form-textarea.error {
+            border: 2px solid #e74c3c;
+            padding-left: 15px;
+        }
+
+        .form-input.error:focus,
+        .form-select.error:focus,
+        .form-textarea.error:focus {
+            box-shadow: 0 0 0 3px rgba(231,76,60,0.1);
+        }
+
+        .form-input.success,
+        .form-select.success,
+        .form-textarea.success {
+            border: 2px solid #48bb78;
+            padding-left: 15px;
+        }
+
+        .error-message {
+            display: none;
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .input-label.required::after {
+            content: ' *';
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            display: none;
+        }
+
+        .validation-icon.error {
+            display: block;
+            color: #e74c3c;
+        }
+
+        .validation-icon.success {
+            display: block;
+            color: #48bb78;
+        }
+
+        .form-input:hover,
+        .form-select:hover,
+        .form-textarea:hover {
+            border-color: #bdbdbd;
+        }
+
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23616161' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #757575;
+            margin-top: 6px;
+            display: block;
+        }
+
+        /* Progressive Disclosure */
+        .advanced-toggle {
+            background: none;
+            border: none;
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .advanced-toggle:hover {
+            color: #0052a3;
+        }
+
+        .advanced-fields {
+            display: none;
+            margin-top: 16px;
+            padding-top: 24px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .advanced-fields.visible {
+            display: block;
+        }
+
+        /* Wizard Navigation */
+        .wizard-actions {
+            padding: 24px 32px;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            min-height: 48px;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,102,204,0.2);
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            box-shadow: 0 4px 8px rgba(0,102,204,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #616161;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+            border-color: #bdbdbd;
+        }
+
+        .btn-text {
+            background: none;
+            color: #0066cc;
+            padding: 12px 16px;
+        }
+
+        .btn-text:hover {
+            background: rgba(0,102,204,0.08);
+        }
+
+        /* Summary View */
+        .summary-section {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .summary-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-edit {
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+        }
+
+        .summary-edit:hover {
+            text-decoration: underline;
+        }
+
+        .summary-item {
+            margin-bottom: 12px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #757575;
+            margin-bottom: 4px;
+        }
+
+        .summary-value {
+            font-size: 14px;
+            color: #212121;
+            font-weight: 500;
+        }
+
+        .history-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 20px;
+            color: #95a5a6;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #0066cc;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .history-changes {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-change {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .history-change strong {
+            color: #0066cc;
+        }
+
+        .history-value {
+            background: #e8f4f8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .history-arrow {
+            color: #95a5a6;
+            margin: 0 6px;
+        }
+
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .form-field-group {
+                grid-template-columns: 1fr;
+            }
+
+            .wizard-actions {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Kanban Board</h1>
+        <p>Görevlerinizi sürükle-bırak ile yönetin</p>
+    </div>
+
+    <div class="add-task-btn-container">
+        <button class="add-task-trigger" onclick="openWizard()">+ Yeni Görev Ekle</button>
+    </div>
+
+    <div class="board">
+        <div class="column" data-status="todo">
+            <div class="column-header">
+                Yapılacak
+                <span class="count" id="count-todo">0</span>
+            </div>
+            <div class="tasks" id="tasks-todo"></div>
+        </div>
+
+        <div class="column" data-status="inprogress">
+            <div class="column-header">
+                Devam Eden
+                <span class="count" id="count-inprogress">0</span>
+            </div>
+            <div class="tasks" id="tasks-inprogress"></div>
+        </div>
+
+        <div class="column" data-status="done">
+            <div class="column-header">
+                Tamamlandı
+                <span class="count" id="count-done">0</span>
+            </div>
+            <div class="tasks" id="tasks-done"></div>
+        </div>
+    </div>
+
+    <!-- Task Creation Wizard Modal -->
+    <div class="modal" id="wizardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yeni Görev Oluştur</h2>
+                <button class="close-btn" onclick="closeWizard()">&times;</button>
+            </div>
+
+            <div class="wizard-progress">
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Görev Tipi</div>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Detaylar</div>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Atama</div>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="step-number">4</div>
+                        <div class="step-label" id="step4Label">Ek Bilgiler</div>
+                    </div>
+                    <div class="progress-step" data-step="5">
+                        <div class="step-number">5</div>
+                        <div class="step-label">Özet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-body">
+                <!-- Step 1: Task Type Selection -->
+                <div class="wizard-step active" data-step="1">
+                    <h3 class="step-title">Görev Tipi Seçin</h3>
+                    <p class="step-description">Ne tür bir görev oluşturmak istiyorsunuz?</p>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">Görev Tipi</label>
+                            <select class="form-select" id="wizTaskType" onchange="handleTaskTypeChange()">
+                                <option value="">Seçiniz</option>
+                                <option value="request">📝 Request - Son Kullanıcı Talebi</option>
+                                <option value="change">🔧 Change - IT Değişikliği</option>
+                            </select>
+                            <span class="validation-icon" id="wizTaskType-icon"></span>
+                        </div>
+                        <span class="error-message" id="wizTaskType-error">Görev tipi seçilmesi zorunludur</span>
+                        <span class="helper-text" id="taskTypeHelper">Görev tipini seçtikten sonra ilgili alanlar görünecektir</span>
+                    </div>
+
+                    <div id="taskTypeInfo" style="display: none; margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0066cc;">
+                        <p style="margin: 0; color: #2c3e50; font-size: 14px;" id="taskTypeDescription"></p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Task Details -->
+                <div class="wizard-step" data-step="2">
+                    <h3 class="step-title">Görev Detayları</h3>
+                    <p class="step-description">Görevin ana bilgilerini girin</p>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">Görev Başlığı</label>
+                            <input type="text" class="form-input" id="wizTitle" required>
+                            <span class="validation-icon" id="wizTitle-icon"></span>
+                        </div>
+                        <span class="error-message" id="wizTitle-error">Görev başlığı zorunludur</span>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Açıklama</label>
+                            <textarea class="form-textarea" id="wizDescription"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-field-group">
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label required">Öncelik</label>
+                                <select class="form-select" id="wizPriority"></select>
+                                <span class="validation-icon" id="wizPriority-icon"></span>
+                            </div>
+                            <span class="error-message" id="wizPriority-error">Öncelik seçilmesi zorunludur</span>
+                        </div>
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label">Kategori</label>
+                                <select class="form-select" id="wizCategory"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="advanced-toggle" onclick="toggleAdvanced('step2')">
+                        <span id="advToggle2">▶</span> Gelişmiş Seçenekler
+                    </button>
+                    <div class="advanced-fields" id="advanced-step2">
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Durum</label>
+                                <select class="form-select" id="wizStatus">
+                                    <option value="todo">Yapılacak</option>
+                                    <option value="inprogress">Devam Eden</option>
+                                    <option value="done">Tamamlandı</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Team & Assignment -->
+                <div class="wizard-step" data-step="3">
+                    <h3 class="step-title">Takım ve Atama</h3>
+                    <p class="step-description">Görevi kime atamak istiyorsunuz?</p>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Şirket</label>
+                            <select class="form-select" id="wizCompany"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Departman</label>
+                            <select class="form-select" id="wizDepartment"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Atanan Kişi</label>
+                            <select class="form-select" id="wizPerson"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Request Details (for Request type) -->
+                <div class="wizard-step" data-step="4" id="step4Request" style="display: none;">
+                    <h3 class="step-title">Talep Detayları</h3>
+                    <p class="step-description">Son kullanıcı talebine ait bilgiler</p>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">Talep Eden Kullanıcı</label>
+                            <input type="text" class="form-input" id="wizRequester">
+                            <span class="validation-icon" id="wizRequester-icon"></span>
+                        </div>
+                        <span class="error-message" id="wizRequester-error">Talep eden kullanıcı bilgisi zorunludur</span>
+                        <span class="helper-text">Talebi yapan son kullanıcının adı</span>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">İş Gerekçesi</label>
+                            <textarea class="form-textarea" id="wizBusinessJustification"></textarea>
+                            <span class="validation-icon" id="wizBusinessJustification-icon" style="top: 24px;"></span>
+                        </div>
+                        <span class="error-message" id="wizBusinessJustification-error">İş gerekçesi zorunludur</span>
+                        <span class="helper-text">Bu talebin iş açısından önemi ve gerekçesi</span>
+                    </div>
+
+                    <div class="form-field-group">
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label">Etkilenen Kullanıcı Sayısı</label>
+                                <input type="number" class="form-input" id="wizAffectedUsers" min="0">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label">Beklenen Tamamlanma</label>
+                                <input type="date" class="form-input" id="wizExpectedCompletion" style="padding-top: 12px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="advanced-toggle" onclick="toggleAdvanced('step4request')">
+                        <span id="advToggle4request">▶</span> Ek Bilgiler
+                    </button>
+                    <div class="advanced-fields" id="advanced-step4request">
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Departman/Ekip</label>
+                                <input type="text" class="form-input" id="wizRequestingTeam">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Maliyet Tahmini</label>
+                                <input type="text" class="form-input" id="wizCostEstimate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Change Management (for Change type) -->
+                <div class="wizard-step" data-step="4" id="step4Change" style="display: none;">
+                    <h3 class="step-title">Change Management</h3>
+                    <p class="step-description">IT değişiklik yönetimi detayları</p>
+
+                    <div class="form-field-group">
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label required">Change Tipi</label>
+                                <select class="form-select" id="wizChangeType"></select>
+                                <span class="validation-icon" id="wizChangeType-icon"></span>
+                            </div>
+                            <span class="error-message" id="wizChangeType-error">Change tipi seçilmesi zorunludur</span>
+                        </div>
+                        <div>
+                            <div class="input-wrapper">
+                                <label class="input-label required">Risk Seviyesi</label>
+                                <select class="form-select" id="wizRiskLevel"></select>
+                                <span class="validation-icon" id="wizRiskLevel-icon"></span>
+                            </div>
+                            <span class="error-message" id="wizRiskLevel-error">Risk seviyesi seçilmesi zorunludur</span>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">Etki Seviyesi</label>
+                            <select class="form-select" id="wizImpactLevel"></select>
+                            <span class="validation-icon" id="wizImpactLevel-icon"></span>
+                        </div>
+                        <span class="error-message" id="wizImpactLevel-error">Etki seviyesi seçilmesi zorunludur</span>
+                        <span class="helper-text">Bu değişikliğin sistem ve kullanıcılar üzerindeki etkisi</span>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label required">Rollback Planı</label>
+                            <textarea class="form-textarea" id="wizRollbackPlan"></textarea>
+                            <span class="validation-icon" id="wizRollbackPlan-icon" style="top: 24px;"></span>
+                        </div>
+                        <span class="error-message" id="wizRollbackPlan-error">Rollback planı zorunludur</span>
+                        <span class="helper-text">Sorun durumunda geri alma adımları</span>
+                    </div>
+
+                    <button class="advanced-toggle" onclick="toggleAdvanced('step4change')">
+                        <span id="advToggle4change">▶</span> Detaylı Planlama
+                    </button>
+                    <div class="advanced-fields" id="advanced-step4change">
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Planlanan Uygulama Tarihi</label>
+                                <input type="datetime-local" class="form-input" id="wizImplementationDate" style="padding-top: 12px;">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Bakım Penceresi</label>
+                                <input type="text" class="form-input" id="wizMaintenanceWindow" placeholder="Örn: Cumartesi 02:00-06:00">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <div class="input-wrapper">
+                                <label class="input-label">Etkilenen Sistemler</label>
+                                <textarea class="form-textarea" id="wizAffectedSystems"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Summary -->
+                <div class="wizard-step" data-step="5">
+                    <h3 class="step-title">Özet ve Onay</h3>
+                    <p class="step-description">Görev bilgilerini kontrol edin</p>
+
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            Görev Tipi
+                            <button class="summary-edit" onclick="goToStep(1)">Düzenle</button>
+                        </div>
+                        <div id="summaryTaskType"></div>
+                    </div>
+
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            Temel Bilgiler
+                            <button class="summary-edit" onclick="goToStep(2)">Düzenle</button>
+                        </div>
+                        <div id="summaryBasics"></div>
+                    </div>
+
+                    <div class="summary-section">
+                        <div class="summary-title">
+                            Atama Bilgileri
+                            <button class="summary-edit" onclick="goToStep(3)">Düzenle</button>
+                        </div>
+                        <div id="summaryAssignment"></div>
+                    </div>
+
+                    <div class="summary-section" id="summaryRequestSection" style="display: none;">
+                        <div class="summary-title">
+                            Talep Detayları
+                            <button class="summary-edit" onclick="goToStep(4)">Düzenle</button>
+                        </div>
+                        <div id="summaryRequest"></div>
+                    </div>
+
+                    <div class="summary-section" id="summaryChangeSection" style="display: none;">
+                        <div class="summary-title">
+                            Change Management
+                            <button class="summary-edit" onclick="goToStep(4)">Düzenle</button>
+                        </div>
+                        <div id="summaryChange"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-actions">
+                <div>
+                    <button class="btn btn-secondary" id="btnBack" onclick="previousStep()" style="display:none;">← Geri</button>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-text" onclick="saveDraft()">Taslak Kaydet</button>
+                    <button class="btn btn-primary" id="btnNext" onclick="nextStep()">Devam Et →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Görevi Düzenle</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="wizard-body">
+                <div class="form-field">
+                    <div class="input-wrapper">
+                        <label class="input-label">Görev Tipi</label>
+                        <select class="form-select" id="editTaskType" disabled style="background: #f5f5f5; cursor: not-allowed;">
+                            <option value="request">📝 Request - Son Kullanıcı Talebi</option>
+                            <option value="change">🔧 Change - IT Değişikliği</option>
+                        </select>
+                    </div>
+                    <span class="helper-text">Görev tipi oluşturulduktan sonra değiştirilemez</span>
+                </div>
+                <div class="form-field">
+                    <div class="input-wrapper">
+                        <label class="input-label">Görev Başlığı</label>
+                        <input type="text" class="form-input" id="editTaskTitle">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <div class="input-wrapper">
+                        <label class="input-label">Açıklama</label>
+                        <textarea class="form-textarea" id="editTaskDescription"></textarea>
+                    </div>
+                </div>
+                <div class="form-field-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">Kategori</label>
+                        <select class="form-select" id="editTaskCategory"></select>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Durum</label>
+                        <select class="form-select" id="editTaskStatus">
+                            <option value="todo">Yapılacak</option>
+                            <option value="inprogress">Devam Eden</option>
+                            <option value="done">Tamamlandı</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-field-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">Öncelik</label>
+                        <select class="form-select" id="editTaskPriority"></select>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Şirket</label>
+                        <select class="form-select" id="editTaskCompany"></select>
+                    </div>
+                </div>
+                <div class="form-field-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">Departman</label>
+                        <select class="form-select" id="editTaskDepartment"></select>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Atanan Kişi</label>
+                        <select class="form-select" id="editTaskPerson"></select>
+                    </div>
+                </div>
+
+                <!-- Request specific fields -->
+                <div id="editRequestFields" style="display: none;">
+                    <h3 style="font-size: 18px; font-weight: 600; margin: 24px 0 16px; color: #2c3e50;">Talep Detayları</h3>
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Talep Eden Kullanıcı</label>
+                            <input type="text" class="form-input" id="editTaskRequester">
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">İş Gerekçesi</label>
+                            <textarea class="form-textarea" id="editTaskBusinessJustification"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-field-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Etkilenen Kullanıcı Sayısı</label>
+                            <input type="number" class="form-input" id="editTaskAffectedUsers" min="0">
+                        </div>
+                        <div class="input-wrapper">
+                            <label class="input-label">Beklenen Tamamlanma</label>
+                            <input type="date" class="form-input" id="editTaskExpectedCompletion" style="padding-top: 12px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change specific fields -->
+                <div id="editChangeFields" style="display: none;">
+                    <h3 style="font-size: 18px; font-weight: 600; margin: 24px 0 16px; color: #2c3e50;">Change Management</h3>
+                    <div class="form-field-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Change Tipi</label>
+                            <select class="form-select" id="editTaskChangeType"></select>
+                        </div>
+                        <div class="input-wrapper">
+                            <label class="input-label">Risk Seviyesi</label>
+                            <select class="form-select" id="editTaskRiskLevel"></select>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Etki Seviyesi</label>
+                            <select class="form-select" id="editTaskImpactLevel"></select>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Rollback Planı</label>
+                            <textarea class="form-textarea" id="editTaskRollbackPlan"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <div class="input-wrapper">
+                            <label class="input-label">Planlanan Uygulama Tarihi</label>
+                            <input type="datetime-local" class="form-input" id="editTaskImplementationDate" style="padding-top: 12px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wizard-actions">
+                <button class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveTask()">Kaydet</button>
+            </div>
+            <div class="history-section" style="padding: 0 32px 32px;">
+                <div class="history-title">📊 Güncelleme Geçmişi</div>
+                <div id="historyContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ JSON Configuration Files ============
+        
+        const companiesConfig = {
+            companies: [
+                {
+                    id: 1,
+                    name: "ABC Teknoloji",
+                    departments: [
+                        {
+                            id: 101,
+                            name: "IT",
+                            persons: [
+                                { id: 1001, name: "Ahmet Yılmaz", email: "ahmet@abc.com" },
+                                { id: 1002, name: "Mehmet Kaya", email: "mehmet@abc.com" }
+                            ]
+                        },
+                        {
+                            id: 102,
+                            name: "Finans",
+                            persons: [
+                                { id: 1003, name: "Zeynep Aydın", email: "zeynep@abc.com" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "XYZ Yazılım",
+                    departments: [
+                        {
+                            id: 201,
+                            name: "Geliştirme",
+                            persons: [
+                                { id: 2001, name: "Ayşe Demir", email: "ayse@xyz.com" },
+                                { id: 2002, name: "Can Öztürk", email: "can@xyz.com" }
+                            ]
+                        },
+                        {
+                            id: 202,
+                            name: "Destek",
+                            persons: [
+                                { id: 2003, name: "Elif Yıldız", email: "elif@xyz.com" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "DEF Danışmanlık",
+                    departments: [
+                        {
+                            id: 301,
+                            name: "Proje Yönetimi",
+                            persons: [
+                                { id: 3001, name: "Ali Çelik", email: "ali@def.com" }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const changeTypesConfig = {
+            types: [
+                { id: "normal", name: "Normal Change" },
+                { id: "standard", name: "Standard Change" },
+                { id: "emergency", name: "Emergency Change" }
+            ]
+        };
+
+        const riskLevelsConfig = {
+            levels: [
+                { id: "low", name: "Düşük Risk" },
+                { id: "medium", name: "Orta Risk" },
+                { id: "high", name: "Yüksek Risk" }
+            ]
+        };
+
+        const impactLevelsConfig = {
+            levels: [
+                { id: "low", name: "Düşük Etki" },
+                { id: "medium", name: "Orta Etki" },
+                { id: "high", name: "Yüksek Etki" }
+            ]
+        };
+
+        const prioritiesConfig = {
+            priorities: [
+                { id: "low", name: "Düşük Öncelik" },
+                { id: "medium", name: "Orta Öncelik" },
+                { id: "high", name: "Yüksek Öncelik" }
+            ]
+        };
+
+        const categoriesConfig = {
+            categories: [
+                { id: "bug", name: "Hata Düzeltme" },
+                { id: "feature", name: "Yeni Özellik" },
+                { id: "maintenance", name: "Bakım" },
+                { id: "security", name: "Güvenlik" },
+                { id: "documentation", name: "Dokümantasyon" },
+                { id: "support", name: "Destek Talebi" }
+            ]
+        };
+
+        // ============ Task Data ============
+        let tasks = [
+            {
+                id: 1,
+                title: "Proje planlaması",
+                description: "Q4 için proje yol haritasını oluştur",
+                status: "todo",
+                taskType: "request",
+                companyId: 1,
+                departmentId: 101,
+                assignedToId: 1001,
+                category: "feature",
+                requester: "Yönetim Kurulu",
+                businessJustification: "Şirket stratejik hedeflerine uyum",
+                priority: "high",
+                affectedUsers: 50,
+                expectedCompletion: "2024-12-31",
+                date: new Date().toLocaleDateString('tr-TR'),
+                history: []
+            },
+            {
+                id: 2,
+                title: "API geliştirme",
+                description: "REST API endpoint'lerini tamamla",
+                status: "inprogress",
+                taskType: "change",
+                companyId: 2,
+                departmentId: 201,
+                assignedToId: 2001,
+                category: "feature",
+                changeType: "standard",
+                riskLevel: "low",
+                impactLevel: "medium",
+                rollbackPlan: "Önceki API versiyonunu geri yükle",
+                implementationDate: "2024-11-15T02:00",
+                priority: "medium",
+                date: new Date().toLocaleDateString('tr-TR'),
+                history: [{
+                    date: "25.09.2024 14:30",
+                    changes: [{ field: "Durum", oldValue: "Yapılacak", newValue: "Devam Eden" }]
+                }]
+            },
+            {
+                id: 3,
+                title: "Logo tasarımı",
+                description: "Yeni logo konseptlerini hazırla",
+                status: "done",
+                taskType: "request",
+                companyId: 1,
+                departmentId: 101,
+                assignedToId: 1002,
+                category: "feature",
+                requester: "Pazarlama Direktörü",
+                businessJustification: "Marka yenileme projesi",
+                priority: "low",
+                affectedUsers: 5,
+                date: new Date().toLocaleDateString('tr-TR'),
+                history: [
+                    {
+                        date: "20.09.2024 10:15",
+                        changes: [{ field: "Durum", oldValue: "Devam Eden", newValue: "Tamamlandı" }]
+                    }
+                ]
+            }
+        ];
+
+        let draggedElement = null;
+        let currentEditId = null;
+        let currentWizardStep = 1;
+        let wizardData = {};
+
+        // ============ Helper Functions ============
+        
+        function getCompanyName(companyId) {
+            const company = companiesConfig.companies.find(c => c.id === companyId);
+            return company ? company.name : '';
+        }
+
+        function getDepartmentName(companyId, departmentId) {
+            const company = companiesConfig.companies.find(c => c.id === companyId);
+            if (!company) return '';
+            const dept = company.departments.find(d => d.id === departmentId);
+            return dept ? dept.name : '';
+        }
+
+        function getPersonName(companyId, departmentId, personId) {
+            const company = companiesConfig.companies.find(c => c.id === companyId);
+            if (!company) return '';
+            const dept = company.departments.find(d => d.id === departmentId);
+            if (!dept) return '';
+            const person = dept.persons.find(p => p.id === personId);
+            return person ? person.name : '';
+        }
+
+        function getCategoryName(categoryId) {
+            const cat = categoriesConfig.categories.find(c => c.id === categoryId);
+            return cat ? cat.name : '';
+        }
+
+        function getChangeTypeName(typeId) {
+            const type = changeTypesConfig.types.find(t => t.id === typeId);
+            return type ? type.name : '';
+        }
+
+        function getRiskLevelName(levelId) {
+            const level = riskLevelsConfig.levels.find(l => l.id === levelId);
+            return level ? level.name : '';
+        }
+
+        function getImpactLevelName(levelId) {
+            const level = impactLevelsConfig.levels.find(l => l.id === levelId);
+            return level ? level.name : '';
+        }
+
+        function getPriorityName(priorityId) {
+            const priority = prioritiesConfig.priorities.find(p => p.id === priorityId);
+            return priority ? priority.name : '';
+        }
+
+        // ============ Populate Dropdowns ============
+        
+        function populateWizardDropdowns() {
+            // Companies
+            const companySelect = document.getElementById('wizCompany');
+            companySelect.innerHTML = '<option value="">Seçiniz</option>';
+            companiesConfig.companies.forEach(company => {
+                companySelect.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+            });
+
+            // Categories
+            const categorySelect = document.getElementById('wizCategory');
+            categorySelect.innerHTML = '<option value="">Seçiniz</option>';
+            categoriesConfig.categories.forEach(cat => {
+                categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+
+            // Change Types
+            const changeTypeSelect = document.getElementById('wizChangeType');
+            changeTypeSelect.innerHTML = '<option value="">Seçiniz</option>';
+            changeTypesConfig.types.forEach(type => {
+                changeTypeSelect.innerHTML += `<option value="${type.id}">${type.name}</option>`;
+            });
+
+            // Risk Levels
+            const riskSelect = document.getElementById('wizRiskLevel');
+            riskSelect.innerHTML = '<option value="">Seçiniz</option>';
+            riskLevelsConfig.levels.forEach(level => {
+                riskSelect.innerHTML += `<option value="${level.id}">${level.name}</option>`;
+            });
+
+            // Impact Levels
+            const impactSelect = document.getElementById('wizImpactLevel');
+            impactSelect.innerHTML = '<option value="">Seçiniz</option>';
+            impactLevelsConfig.levels.forEach(level => {
+                impactSelect.innerHTML += `<option value="${level.id}">${level.name}</option>`;
+            });
+
+            // Priorities
+            const prioritySelect = document.getElementById('wizPriority');
+            prioritySelect.innerHTML = '<option value="">Seçiniz</option>';
+            prioritiesConfig.priorities.forEach(priority => {
+                prioritySelect.innerHTML += `<option value="${priority.id}">${priority.name}</option>`;
+            });
+        }
+
+        function populateEditDropdowns() {
+            // Edit modal dropdowns
+            ['editTaskCompany'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                companiesConfig.companies.forEach(company => {
+                    select.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+                });
+            });
+
+            ['editTaskCategory'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                categoriesConfig.categories.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+            });
+
+            ['editTaskChangeType'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                changeTypesConfig.types.forEach(type => {
+                    select.innerHTML += `<option value="${type.id}">${type.name}</option>`;
+                });
+            });
+
+            ['editTaskRiskLevel'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                riskLevelsConfig.levels.forEach(level => {
+                    select.innerHTML += `<option value="${level.id}">${level.name}</option>`;
+                });
+            });
+
+            ['editTaskImpactLevel'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                impactLevelsConfig.levels.forEach(level => {
+                    select.innerHTML += `<option value="${level.id}">${level.name}</option>`;
+                });
+            });
+
+            ['editTaskPriority'].forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Seçiniz</option>';
+                prioritiesConfig.priorities.forEach(priority => {
+                    select.innerHTML += `<option value="${priority.id}">${priority.name}</option>`;
+                });
+            });
+        }
+
+        function updateWizardDepartmentDropdown(companyId) {
+            const select = document.getElementById('wizDepartment');
+            select.innerHTML = '<option value="">Seçiniz</option>';
+            
+            if (!companyId) return;
+            
+            const company = companiesConfig.companies.find(c => c.id == companyId);
+            if (company) {
+                company.departments.forEach(dept => {
+                    select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
+                });
+            }
+        }
+
+        function updateWizardPersonDropdown(companyId, departmentId) {
+            const select = document.getElementById('wizPerson');
+            select.innerHTML = '<option value="">Seçiniz</option>';
+            
+            if (!companyId || !departmentId) return;
+            
+            const company = companiesConfig.companies.find(c => c.id == companyId);
+            if (company) {
+                const dept = company.departments.find(d => d.id == departmentId);
+                if (dept) {
+                    dept.persons.forEach(person => {
+                        select.innerHTML += `<option value="${person.id}">${person.name}</option>`;
+                    });
+                }
+            }
+        }
+
+        function updateEditDepartmentDropdown(companyId) {
+            const select = document.getElementById('editTaskDepartment');
+            select.innerHTML = '<option value="">Seçiniz</option>';
+            
+            if (!companyId) return;
+            
+            const company = companiesConfig.companies.find(c => c.id == companyId);
+            if (company) {
+                company.departments.forEach(dept => {
+                    select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
+                });
+            }
+        }
+
+        function updateEditPersonDropdown(companyId, departmentId) {
+            const select = document.getElementById('editTaskPerson');
+            select.innerHTML = '<option value="">Seçiniz</option>';
+            
+            if (!companyId || !departmentId) return;
+            
+            const company = companiesConfig.companies.find(c => c.id == companyId);
+            if (company) {
+                const dept = company.departments.find(d => d.id == departmentId);
+                if (dept) {
+                    dept.persons.forEach(person => {
+                        select.innerHTML += `<option value="${person.id}">${person.name}</option>`;
+                    });
+                }
+            }
+        }
+
+        // Wizard event listeners
+        document.getElementById('wizCompany').addEventListener('change', function() {
+            updateWizardDepartmentDropdown(this.value);
+            document.getElementById('wizPerson').innerHTML = '<option value="">Seçiniz</option>';
+        });
+
+        document.getElementById('wizDepartment').addEventListener('change', function() {
+            const companyId = document.getElementById('wizCompany').value;
+            updateWizardPersonDropdown(companyId, this.value);
+        });
+
+        document.getElementById('editTaskCompany').addEventListener('change', function() {
+            updateEditDepartmentDropdown(this.value);
+            document.getElementById('editTaskPerson').innerHTML = '<option value="">Seçiniz</option>';
+        });
+
+        document.getElementById('editTaskDepartment').addEventListener('change', function() {
+            const companyId = document.getElementById('editTaskCompany').value;
+            updateEditPersonDropdown(companyId, this.value);
+        });
+
+        // ============ Validation Functions ============
+        
+        function validateField(fieldId, fieldName, customValidation = null) {
+            const field = document.getElementById(fieldId);
+            const errorMsg = document.getElementById(`${fieldId}-error`);
+            const icon = document.getElementById(`${fieldId}-icon`);
+            
+            if (!field) return true;
+            
+            let isValid = true;
+            let errorText = '';
+            
+            // Check if field is required
+            const label = document.querySelector(`label[class*="input-label"][class*="required"]`);
+            const isRequired = field.closest('.input-wrapper')?.querySelector('.input-label.required') !== null;
+            
+            if (isRequired) {
+                const value = field.value?.trim();
+                if (!value || value === '') {
+                    isValid = false;
+                    errorText = `${fieldName} zorunludur`;
+                }
+            }
+            
+            // Custom validation
+            if (isValid && customValidation) {
+                const customResult = customValidation(field.value);
+                if (!customResult.valid) {
+                    isValid = false;
+                    errorText = customResult.message;
+                }
+            }
+            
+            // Update UI
+            if (!isValid) {
+                field.classList.add('error');
+                field.classList.remove('success');
+                if (errorMsg) {
+                    errorMsg.textContent = errorText;
+                    errorMsg.classList.add('visible');
+                }
+                if (icon) {
+                    icon.textContent = '✕';
+                    icon.classList.add('error');
+                    icon.classList.remove('success');
+                }
+            } else if (field.value?.trim()) {
+                field.classList.remove('error');
+                field.classList.add('success');
+                if (errorMsg) {
+                    errorMsg.classList.remove('visible');
+                }
+                if (icon) {
+                    icon.textContent = '✓';
+                    icon.classList.add('success');
+                    icon.classList.remove('error');
+                }
+            } else {
+                field.classList.remove('error', 'success');
+                if (errorMsg) {
+                    errorMsg.classList.remove('visible');
+                }
+                if (icon) {
+                    icon.textContent = '';
+                    icon.classList.remove('error', 'success');
+                }
+            }
+            
+            return isValid;
+        }
+
+        function validateStep1() {
+            const taskTypeValid = validateField('wizTaskType', 'Görev tipi');
+            return taskTypeValid;
+        }
+
+        function validateStep2() {
+            const titleValid = validateField('wizTitle', 'Görev başlığı');
+            const priorityValid = validateField('wizPriority', 'Öncelik');
+            return titleValid && priorityValid;
+        }
+
+        function validateStep4Request() {
+            const requesterValid = validateField('wizRequester', 'Talep eden kullanıcı');
+            const justificationValid = validateField('wizBusinessJustification', 'İş gerekçesi');
+            
+            return requesterValid && justificationValid;
+        }
+
+        function validateStep4Change() {
+            const changeTypeValid = validateField('wizChangeType', 'Change tipi');
+            const riskLevelValid = validateField('wizRiskLevel', 'Risk seviyesi');
+            const impactLevelValid = validateField('wizImpactLevel', 'Etki seviyesi');
+            const rollbackPlanValid = validateField('wizRollbackPlan', 'Rollback planı');
+            
+            return changeTypeValid && riskLevelValid && impactLevelValid && rollbackPlanValid;
+        }
+
+        function setupFieldValidation() {
+            // Step 1 fields
+            const step1Fields = ['wizTaskType'];
+            step1Fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', function() {
+                        validateField(fieldId, 'Görev tipi');
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        if (this.classList.contains('error')) {
+                            const errorMsg = document.getElementById(`${fieldId}-error`);
+                            if (errorMsg) errorMsg.classList.remove('visible');
+                            this.classList.remove('error');
+                        }
+                    });
+                }
+            });
+            
+            // Step 2 fields
+            const step2Fields = ['wizTitle', 'wizPriority'];
+            step2Fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', function() {
+                        const fieldName = {
+                            'wizTitle': 'Görev başlığı',
+                            'wizPriority': 'Öncelik'
+                        }[fieldId];
+                        validateField(fieldId, fieldName);
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        if (this.classList.contains('error')) {
+                            const errorMsg = document.getElementById(`${fieldId}-error`);
+                            if (errorMsg) errorMsg.classList.remove('visible');
+                            this.classList.remove('error');
+                        }
+                    });
+                }
+            });
+            
+            // Step 4 Request fields
+            const step4RequestFields = ['wizRequester', 'wizBusinessJustification'];
+            step4RequestFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', function() {
+                        const fieldName = {
+                            'wizRequester': 'Talep eden kullanıcı',
+                            'wizBusinessJustification': 'İş gerekçesi'
+                        }[fieldId];
+                        validateField(fieldId, fieldName);
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        if (this.classList.contains('error')) {
+                            const errorMsg = document.getElementById(`${fieldId}-error`);
+                            if (errorMsg) errorMsg.classList.remove('visible');
+                            this.classList.remove('error');
+                        }
+                    });
+                }
+            });
+            
+            // Step 4 Change fields
+            const step4ChangeFields = ['wizChangeType', 'wizRiskLevel', 'wizImpactLevel', 'wizRollbackPlan'];
+            step4ChangeFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', function() {
+                        const fieldName = {
+                            'wizChangeType': 'Change tipi',
+                            'wizRiskLevel': 'Risk seviyesi',
+                            'wizImpactLevel': 'Etki seviyesi',
+                            'wizRollbackPlan': 'Rollback planı'
+                        }[fieldId];
+                        validateField(fieldId, fieldName);
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        if (this.classList.contains('error')) {
+                            const errorMsg = document.getElementById(`${fieldId}-error`);
+                            if (errorMsg) errorMsg.classList.remove('visible');
+                            this.classList.remove('error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // ============ Wizard Functions ============
+        
+        function handleTaskTypeChange() {
+            const taskType = document.getElementById('wizTaskType').value;
+            const taskTypeInfo = document.getElementById('taskTypeInfo');
+            const taskTypeDescription = document.getElementById('taskTypeDescription');
+            
+            if (taskType) {
+                taskTypeInfo.style.display = 'block';
+                
+                // Clear type-specific data if task type changes
+                if (wizardData.taskType && wizardData.taskType !== taskType) {
+                    // Clear request-specific data
+                    wizardData.requester = '';
+                    wizardData.businessJustification = '';
+                    wizardData.affectedUsers = '';
+                    wizardData.expectedCompletion = '';
+                    wizardData.requestingTeam = '';
+                    wizardData.costEstimate = '';
+                    
+                    // Clear change-specific data
+                    wizardData.changeType = '';
+                    wizardData.riskLevel = '';
+                    wizardData.impactLevel = '';
+                    wizardData.rollbackPlan = '';
+                    wizardData.implementationDate = '';
+                    wizardData.maintenanceWindow = '';
+                    wizardData.affectedSystems = '';
+                }
+                
+                if (taskType === 'request') {
+                    taskTypeDescription.innerHTML = '<strong>📝 Request (Talep):</strong> Son kullanıcılardan gelen ihtiyaçlar ve istekleri yönetmek için kullanılır. İş gerekçesi ve talep eden bilgisi gerektirir.';
+                    document.getElementById('step4Label').textContent = 'Talep Detayları';
+                } else if (taskType === 'change') {
+                    taskTypeDescription.innerHTML = '<strong>🔧 Change (Değişiklik):</strong> IT sistemlerinde yapılacak değişiklikleri ITIL standartlarına göre yönetmek için kullanılır. Risk değerlendirmesi ve rollback planı gerektirir.';
+                    document.getElementById('step4Label').textContent = 'Change Mgmt';
+                }
+                
+                // Validate field
+                validateField('wizTaskType', 'Görev tipi');
+            } else {
+                taskTypeInfo.style.display = 'none';
+            }
+        }
+
+        function openWizard() {
+            currentWizardStep = 1;
+            wizardData = {};
+            populateWizardDropdowns(); // Dropdown'ları doldur
+            document.getElementById('wizardModal').classList.add('active');
+            updateWizardUI();
+        }
+
+        function closeWizard() {
+            document.getElementById('wizardModal').classList.remove('active');
+            resetWizardForm();
+        }
+
+        function resetWizardForm() {
+            document.getElementById('wizTaskType').value = '';
+            document.getElementById('taskTypeInfo').style.display = 'none';
+            document.getElementById('wizTitle').value = '';
+            document.getElementById('wizDescription').value = '';
+            document.getElementById('wizPriority').value = '';
+            document.getElementById('wizCategory').value = '';
+            document.getElementById('wizStatus').value = 'todo';
+            document.getElementById('wizCompany').value = '';
+            document.getElementById('wizDepartment').innerHTML = '<option value="">Seçiniz</option>';
+            document.getElementById('wizPerson').innerHTML = '<option value="">Seçiniz</option>';
+            
+            // Request fields
+            document.getElementById('wizRequester').value = '';
+            document.getElementById('wizBusinessJustification').value = '';
+            document.getElementById('wizAffectedUsers').value = '';
+            document.getElementById('wizExpectedCompletion').value = '';
+            document.getElementById('wizRequestingTeam').value = '';
+            document.getElementById('wizCostEstimate').value = '';
+            
+            // Change fields
+            document.getElementById('wizChangeType').value = '';
+            document.getElementById('wizRiskLevel').value = '';
+            document.getElementById('wizImpactLevel').value = '';
+            document.getElementById('wizRollbackPlan').value = '';
+            document.getElementById('wizImplementationDate').value = '';
+            document.getElementById('wizMaintenanceWindow').value = '';
+            document.getElementById('wizAffectedSystems').value = '';
+            
+            // Clear validation states
+            document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(field => {
+                field.classList.remove('error', 'success');
+            });
+            
+            document.querySelectorAll('.error-message').forEach(msg => {
+                msg.classList.remove('visible');
+            });
+            
+            document.querySelectorAll('.validation-icon').forEach(icon => {
+                icon.textContent = '';
+                icon.classList.remove('error', 'success');
+            });
+            
+            // Close all advanced sections
+            const advancedSections = document.querySelectorAll('.advanced-fields');
+            advancedSections.forEach(section => {
+                section.classList.remove('visible');
+            });
+            
+            // Reset toggle icons
+            const toggles = ['advToggle2', 'advToggle4request', 'advToggle4change'];
+            toggles.forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                if (toggle) toggle.textContent = '▶';
+            });
+            
+            // Reset wizard state
+            currentWizardStep = 1;
+            wizardData = {};
+        }
+
+        function goToStep(stepNumber) {
+            // Save current step data before navigating
+            if (currentWizardStep <= 4) {
+                saveStepData();
+            }
+            currentWizardStep = stepNumber;
+            updateWizardUI();
+        }
+
+        function nextStep() {
+            // Validation based on current step
+            if (currentWizardStep === 1) {
+                if (!validateStep1()) {
+                    const firstError = document.querySelector('.wizard-step.active .error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                    return;
+                }
+            } else if (currentWizardStep === 2) {
+                if (!validateStep2()) {
+                    const firstError = document.querySelector('.wizard-step.active .error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                    return;
+                }
+            } else if (currentWizardStep === 4) {
+                const taskType = wizardData.taskType || document.getElementById('wizTaskType').value;
+                
+                if (taskType === 'request') {
+                    if (!validateStep4Request()) {
+                        const firstError = document.querySelector('.wizard-step.active .error');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstError.focus();
+                        }
+                        return;
+                    }
+                } else if (taskType === 'change') {
+                    if (!validateStep4Change()) {
+                        const firstError = document.querySelector('.wizard-step.active .error');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstError.focus();
+                        }
+                        return;
+                    }
+                }
+            }
+
+            if (currentWizardStep === 5) {
+                submitWizardTask();
+                return;
+            }
+
+            saveStepData();
+            
+            currentWizardStep++;
+            if (currentWizardStep === 5) {
+                generateSummary();
+            }
+            updateWizardUI();
+        }
+
+        function previousStep() {
+            if (currentWizardStep > 1) {
+                saveStepData(); // Save before going back
+                currentWizardStep--;
+                updateWizardUI();
+            }
+        }
+
+        function updateWizardUI() {
+            // Update step indicators
+            document.querySelectorAll('.progress-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === currentWizardStep) {
+                    step.classList.add('active');
+                } else if (stepNum < currentWizardStep) {
+                    step.classList.add('completed');
+                }
+            });
+
+            // Hide all wizard steps first
+            document.querySelectorAll('.wizard-step').forEach(step => {
+                step.classList.remove('active');
+                step.style.display = 'none';
+            });
+
+            // Show appropriate step based on current step and task type
+            const taskType = wizardData.taskType || document.getElementById('wizTaskType').value;
+            
+            if (currentWizardStep === 4) {
+                // Show appropriate step 4 based on task type
+                if (taskType === 'request') {
+                    const requestStep = document.getElementById('step4Request');
+                    if (requestStep) {
+                        requestStep.classList.add('active');
+                        requestStep.style.display = 'block';
+                    }
+                } else if (taskType === 'change') {
+                    const changeStep = document.getElementById('step4Change');
+                    if (changeStep) {
+                        changeStep.classList.add('active');
+                        changeStep.style.display = 'block';
+                    }
+                }
+            } else {
+                // Show regular steps (1, 2, 3, 5)
+                const currentStep = document.querySelector(`.wizard-step[data-step="${currentWizardStep}"]:not(#step4Request):not(#step4Change)`);
+                if (currentStep) {
+                    currentStep.classList.add('active');
+                    currentStep.style.display = 'block';
+                }
+            }
+
+            // Restore form values if returning to a step
+            restoreFormValues();
+
+            // Update buttons
+            const btnBack = document.getElementById('btnBack');
+            const btnNext = document.getElementById('btnNext');
+            
+            if (currentWizardStep === 1) {
+                btnBack.style.display = 'none';
+            } else {
+                btnBack.style.display = 'block';
+            }
+
+            if (currentWizardStep === 5) {
+                btnNext.textContent = 'Görevi Oluştur';
+            } else {
+                btnNext.textContent = 'Devam Et →';
+            }
+        }
+
+        function saveStepData() {
+            if (currentWizardStep === 1) {
+                wizardData.taskType = document.getElementById('wizTaskType').value;
+            } else if (currentWizardStep === 2) {
+                wizardData.title = document.getElementById('wizTitle').value;
+                wizardData.description = document.getElementById('wizDescription').value;
+                wizardData.priority = document.getElementById('wizPriority').value;
+                wizardData.category = document.getElementById('wizCategory').value;
+                wizardData.status = document.getElementById('wizStatus').value;
+            } else if (currentWizardStep === 3) {
+                wizardData.companyId = document.getElementById('wizCompany').value;
+                wizardData.departmentId = document.getElementById('wizDepartment').value;
+                wizardData.assignedToId = document.getElementById('wizPerson').value;
+            } else if (currentWizardStep === 4) {
+                if (wizardData.taskType === 'request') {
+                    wizardData.requester = document.getElementById('wizRequester').value;
+                    wizardData.businessJustification = document.getElementById('wizBusinessJustification').value;
+                    wizardData.affectedUsers = document.getElementById('wizAffectedUsers').value;
+                    wizardData.expectedCompletion = document.getElementById('wizExpectedCompletion').value;
+                    wizardData.requestingTeam = document.getElementById('wizRequestingTeam').value;
+                    wizardData.costEstimate = document.getElementById('wizCostEstimate').value;
+                } else if (wizardData.taskType === 'change') {
+                    wizardData.changeType = document.getElementById('wizChangeType').value;
+                    wizardData.riskLevel = document.getElementById('wizRiskLevel').value;
+                    wizardData.impactLevel = document.getElementById('wizImpactLevel').value;
+                    wizardData.rollbackPlan = document.getElementById('wizRollbackPlan').value;
+                    wizardData.implementationDate = document.getElementById('wizImplementationDate').value;
+                    wizardData.maintenanceWindow = document.getElementById('wizMaintenanceWindow').value;
+                    wizardData.affectedSystems = document.getElementById('wizAffectedSystems').value;
+                }
+            }
+        }
+
+        function restoreFormValues() {
+            if (currentWizardStep === 1) {
+                if (wizardData.taskType) {
+                    document.getElementById('wizTaskType').value = wizardData.taskType;
+                    handleTaskTypeChange();
+                }
+            } else if (currentWizardStep === 2) {
+                if (wizardData.title) document.getElementById('wizTitle').value = wizardData.title;
+                if (wizardData.description) document.getElementById('wizDescription').value = wizardData.description;
+                if (wizardData.priority) document.getElementById('wizPriority').value = wizardData.priority;
+                if (wizardData.category) document.getElementById('wizCategory').value = wizardData.category;
+                if (wizardData.status) document.getElementById('wizStatus').value = wizardData.status;
+            } else if (currentWizardStep === 3) {
+                if (wizardData.companyId) {
+                    document.getElementById('wizCompany').value = wizardData.companyId;
+                    updateWizardDepartmentDropdown(wizardData.companyId);
+                    if (wizardData.departmentId) {
+                        setTimeout(() => {
+                            document.getElementById('wizDepartment').value = wizardData.departmentId;
+                            updateWizardPersonDropdown(wizardData.companyId, wizardData.departmentId);
+                            if (wizardData.assignedToId) {
+                                setTimeout(() => {
+                                    document.getElementById('wizPerson').value = wizardData.assignedToId;
+                                }, 50);
+                            }
+                        }, 50);
+                    }
+                }
+            } else if (currentWizardStep === 4) {
+                if (wizardData.taskType === 'request') {
+                    if (wizardData.requester) document.getElementById('wizRequester').value = wizardData.requester;
+                    if (wizardData.businessJustification) document.getElementById('wizBusinessJustification').value = wizardData.businessJustification;
+                    if (wizardData.affectedUsers) document.getElementById('wizAffectedUsers').value = wizardData.affectedUsers;
+                    if (wizardData.expectedCompletion) document.getElementById('wizExpectedCompletion').value = wizardData.expectedCompletion;
+                    if (wizardData.requestingTeam) document.getElementById('wizRequestingTeam').value = wizardData.requestingTeam;
+                    if (wizardData.costEstimate) document.getElementById('wizCostEstimate').value = wizardData.costEstimate;
+                } else if (wizardData.taskType === 'change') {
+                    if (wizardData.changeType) document.getElementById('wizChangeType').value = wizardData.changeType;
+                    if (wizardData.riskLevel) document.getElementById('wizRiskLevel').value = wizardData.riskLevel;
+                    if (wizardData.impactLevel) document.getElementById('wizImpactLevel').value = wizardData.impactLevel;
+                    if (wizardData.rollbackPlan) document.getElementById('wizRollbackPlan').value = wizardData.rollbackPlan;
+                    if (wizardData.implementationDate) document.getElementById('wizImplementationDate').value = wizardData.implementationDate;
+                    if (wizardData.maintenanceWindow) document.getElementById('wizMaintenanceWindow').value = wizardData.maintenanceWindow;
+                    if (wizardData.affectedSystems) document.getElementById('wizAffectedSystems').value = wizardData.affectedSystems;
+                }
+            }
+        }
+
+        function generateSummary() {
+            // Task Type
+            const taskTypeLabel = wizardData.taskType === 'request' ? '📝 Request - Son Kullanıcı Talebi' : '🔧 Change - IT Değişikliği';
+            const taskTypeHtml = `
+                <div class="summary-item">
+                    <div class="summary-label">Görev Tipi</div>
+                    <div class="summary-value">${taskTypeLabel}</div>
+                </div>
+            `;
+            document.getElementById('summaryTaskType').innerHTML = taskTypeHtml;
+
+            // Basics
+            const basicsHtml = `
+                <div class="summary-item">
+                    <div class="summary-label">Başlık</div>
+                    <div class="summary-value">${wizardData.title || '-'}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Açıklama</div>
+                    <div class="summary-value">${wizardData.description || '-'}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Öncelik</div>
+                    <div class="summary-value">${getPriorityName(wizardData.priority) || '-'}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Kategori</div>
+                    <div class="summary-value">${getCategoryName(wizardData.category) || '-'}</div>
+                </div>
+            `;
+            document.getElementById('summaryBasics').innerHTML = basicsHtml;
+
+            // Assignment
+            const assignmentHtml = `
+                <div class="summary-item">
+                    <div class="summary-label">Şirket</div>
+                    <div class="summary-value">${getCompanyName(parseInt(wizardData.companyId)) || '-'}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Departman</div>
+                    <div class="summary-value">${getDepartmentName(parseInt(wizardData.companyId), parseInt(wizardData.departmentId)) || '-'}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Atanan Kişi</div>
+                    <div class="summary-value">${getPersonName(parseInt(wizardData.companyId), parseInt(wizardData.departmentId), parseInt(wizardData.assignedToId)) || '-'}</div>
+                </div>
+            `;
+            document.getElementById('summaryAssignment').innerHTML = assignmentHtml;
+
+            // Show/hide sections based on task type
+            if (wizardData.taskType === 'request') {
+                document.getElementById('summaryRequestSection').style.display = 'block';
+                document.getElementById('summaryChangeSection').style.display = 'none';
+                
+                const requestHtml = `
+                    <div class="summary-item">
+                        <div class="summary-label">Talep Eden Kullanıcı</div>
+                        <div class="summary-value">${wizardData.requester || '-'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">İş Gerekçesi</div>
+                        <div class="summary-value">${wizardData.businessJustification || '-'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Etkilenen Kullanıcı Sayısı</div>
+                        <div class="summary-value">${wizardData.affectedUsers || '0'} kullanıcı</div>
+                    </div>
+                    ${wizardData.expectedCompletion ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Beklenen Tamamlanma</div>
+                        <div class="summary-value">${wizardData.expectedCompletion}</div>
+                    </div>` : ''}
+                    ${wizardData.requestingTeam ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Departman/Ekip</div>
+                        <div class="summary-value">${wizardData.requestingTeam}</div>
+                    </div>` : ''}
+                    ${wizardData.costEstimate ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Maliyet Tahmini</div>
+                        <div class="summary-value">${wizardData.costEstimate}</div>
+                    </div>` : ''}
+                `;
+                document.getElementById('summaryRequest').innerHTML = requestHtml;
+            } else if (wizardData.taskType === 'change') {
+                document.getElementById('summaryChangeSection').style.display = 'block';
+                document.getElementById('summaryRequestSection').style.display = 'none';
+                
+                const changeHtml = `
+                    <div class="summary-item">
+                        <div class="summary-label">Change Tipi</div>
+                        <div class="summary-value">${getChangeTypeName(wizardData.changeType) || '-'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Risk Seviyesi</div>
+                        <div class="summary-value">${getRiskLevelName(wizardData.riskLevel) || '-'}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Etki Seviyesi</div>
+                        <div class="summary-value">${getImpactLevelName(wizardData.impactLevel) || '-'}</div>
+                    </div>
+                    ${wizardData.rollbackPlan ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Rollback Planı</div>
+                        <div class="summary-value">${wizardData.rollbackPlan}</div>
+                    </div>` : ''}
+                    ${wizardData.implementationDate ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Planlanan Uygulama</div>
+                        <div class="summary-value">${new Date(wizardData.implementationDate).toLocaleString('tr-TR')}</div>
+                    </div>` : ''}
+                    ${wizardData.maintenanceWindow ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Bakım Penceresi</div>
+                        <div class="summary-value">${wizardData.maintenanceWindow}</div>
+                    </div>` : ''}
+                    ${wizardData.affectedSystems ? `
+                    <div class="summary-item">
+                        <div class="summary-label">Etkilenen Sistemler</div>
+                        <div class="summary-value">${wizardData.affectedSystems}</div>
+                    </div>` : ''}
+                `;
+                document.getElementById('summaryChange').innerHTML = changeHtml;
+            }
+        }
+
+        function submitWizardTask() {
+            // Final validation
+            if (!wizardData.taskType) {
+                alert('Görev tipi seçilmemiş!');
+                goToStep(1);
+                return;
+            }
+            
+            if (!wizardData.title || !wizardData.title.trim()) {
+                alert('Lütfen görev başlığı girin!');
+                goToStep(1);
+                return;
+            }
+            
+            if (!wizardData.priority) {
+                alert('Lütfen öncelik seçin!');
+                goToStep(1);
+                return;
+            }
+
+            // Validate type-specific required fields
+            if (wizardData.taskType === 'request') {
+                if (!wizardData.requester || !wizardData.requester.trim()) {
+                    alert('Lütfen talep eden kullanıcı bilgisini girin!');
+                    goToStep(3);
+                    return;
+                }
+                if (!wizardData.businessJustification || !wizardData.businessJustification.trim()) {
+                    alert('Lütfen iş gerekçesini girin!');
+                    goToStep(3);
+                    return;
+                }
+            } else if (wizardData.taskType === 'change') {
+                if (!wizardData.changeType) {
+                    alert('Lütfen change tipini seçin!');
+                    goToStep(3);
+                    return;
+                }
+                if (!wizardData.riskLevel) {
+                    alert('Lütfen risk seviyesini seçin!');
+                    goToStep(3);
+                    return;
+                }
+                if (!wizardData.impactLevel) {
+                    alert('Lütfen etki seviyesini seçin!');
+                    goToStep(3);
+                    return;
+                }
+                if (!wizardData.rollbackPlan || !wizardData.rollbackPlan.trim()) {
+                    alert('Lütfen rollback planını girin!');
+                    goToStep(3);
+                    return;
+                }
+            }
+
+            const newTask = {
+                id: Date.now(),
+                title: wizardData.title.trim(),
+                description: wizardData.description ? wizardData.description.trim() : '',
+                status: wizardData.status || 'todo',
+                taskType: wizardData.taskType,
+                companyId: parseInt(wizardData.companyId) || null,
+                departmentId: parseInt(wizardData.departmentId) || null,
+                assignedToId: parseInt(wizardData.assignedToId) || null,
+                category: wizardData.category || '',
+                priority: wizardData.priority || '',
+                date: new Date().toLocaleDateString('tr-TR'),
+                history: []
+            };
+
+            // Add type-specific fields
+            if (wizardData.taskType === 'request') {
+                newTask.requester = wizardData.requester.trim();
+                newTask.businessJustification = wizardData.businessJustification.trim();
+                newTask.affectedUsers = parseInt(wizardData.affectedUsers) || 0;
+                newTask.expectedCompletion = wizardData.expectedCompletion || '';
+                newTask.requestingTeam = wizardData.requestingTeam || '';
+                newTask.costEstimate = wizardData.costEstimate || '';
+            } else if (wizardData.taskType === 'change') {
+                newTask.changeType = wizardData.changeType;
+                newTask.riskLevel = wizardData.riskLevel;
+                newTask.impactLevel = wizardData.impactLevel;
+                newTask.rollbackPlan = wizardData.rollbackPlan.trim();
+                newTask.implementationDate = wizardData.implementationDate || '';
+                newTask.maintenanceWindow = wizardData.maintenanceWindow || '';
+                newTask.affectedSystems = wizardData.affectedSystems || '';
+            }
+
+            tasks.push(newTask);
+            renderTasks();
+            closeWizard();
+        }
+
+        function saveDraft() {
+            saveStepData();
+            alert('Taslak kaydedildi! (Bu özellik geliştirilecek)');
+        }
+
+        function toggleAdvanced(stepId) {
+            const advanced = document.getElementById(`advanced-${stepId}`);
+            let toggle;
+            
+            // Handle different toggle IDs
+            if (stepId === 'step2') {
+                toggle = document.getElementById('advToggle2');
+            } else if (stepId === 'step4request') {
+                toggle = document.getElementById('advToggle4request');
+            } else if (stepId === 'step4change') {
+                toggle = document.getElementById('advToggle4change');
+            }
+            
+            if (!advanced || !toggle) {
+                console.warn('Advanced section or toggle not found:', stepId);
+                return;
+            }
+            
+            if (advanced.classList.contains('visible')) {
+                advanced.classList.remove('visible');
+                toggle.textContent = '▶';
+            } else {
+                advanced.classList.add('visible');
+                toggle.textContent = '▼';
+            }
+        }
+
+        // ============ Render Tasks ============
+        
+        function renderTasks() {
+            document.getElementById('tasks-todo').innerHTML = '';
+            document.getElementById('tasks-inprogress').innerHTML = '';
+            document.getElementById('tasks-done').innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskElement = createTaskElement(task);
+                document.getElementById(`tasks-${task.status}`).appendChild(taskElement);
+            });
+
+            updateCounts();
+        }
+
+        function createTaskElement(task) {
+            const div = document.createElement('div');
+            div.className = 'task';
+            div.draggable = true;
+            div.dataset.id = task.id;
+            div.dataset.status = task.status;
+
+            const badges = [];
+            
+            // Task Type Badge
+            if (task.taskType === 'request') {
+                badges.push(`<span class="task-badge" style="background: #e3f2fd; color: #1565c0;">📝 Request</span>`);
+            } else if (task.taskType === 'change') {
+                badges.push(`<span class="task-badge" style="background: #f3e5f5; color: #6a1b9a;">🔧 Change</span>`);
+            }
+            
+            if (task.priority) {
+                badges.push(`<span class="task-badge task-priority-${task.priority}">⚡ ${getPriorityName(task.priority)}</span>`);
+            }
+            
+            // Show change-specific badges only for change type
+            if (task.taskType === 'change' && task.changeType) {
+                badges.push(`<span class="task-badge task-change-${task.changeType}">🔄 ${getChangeTypeName(task.changeType)}</span>`);
+            }
+            
+            if (task.taskType === 'change' && task.riskLevel) {
+                badges.push(`<span class="task-badge task-risk-${task.riskLevel}">⚠️ ${getRiskLevelName(task.riskLevel)}</span>`);
+            }
+            
+            if (task.category) {
+                badges.push(`<span class="task-badge" style="background: #f0f0f0; color: #555;">📁 ${getCategoryName(task.category)}</span>`);
+            }
+
+            const companyName = getCompanyName(task.companyId);
+            const personName = getPersonName(task.companyId, task.departmentId, task.assignedToId);
+
+            const metaHtml = `
+                <div class="task-badge-group">
+                    ${badges.join('')}
+                </div>
+                <div class="task-meta">
+                    ${personName ? `<span class="task-badge task-person">👤 ${personName}</span>` : ''}
+                    ${companyName ? `<span class="task-badge task-company">🏢 ${companyName}</span>` : ''}
+                    ${task.taskType === 'request' && task.affectedUsers ? `<span class="task-badge" style="background: #fff3cd; color: #856404;">👥 ${task.affectedUsers} kullanıcı</span>` : ''}
+                    ${task.taskType === 'request' && task.requester ? `<span class="task-badge" style="background: #e8f5e9; color: #2e7d32;">📢 ${task.requester}</span>` : ''}
+                </div>
+            `;
+
+            div.innerHTML = `
+                <div class="task-title">${task.title}</div>
+                <div class="task-description">${task.description || ''}</div>
+                ${(badges.length > 0 || personName || companyName || task.affectedUsers || task.requester) ? metaHtml : ''}
+                <div class="task-footer">
+                    <span class="task-date">${task.date}</span>
+                    <div class="task-actions">
+                        <button class="edit-btn" onclick="editTask(${task.id})">Düzenle</button>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">Sil</button>
+                    </div>
+                </div>
+            `;
+
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('dragend', handleDragEnd);
+
+            return div;
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.column').forEach(col => {
+                col.classList.remove('drag-over');
+            });
+        }
+
+        function deleteTask(id) {
+            if (confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
+                tasks = tasks.filter(task => task.id !== id);
+                renderTasks();
+            }
+        }
+
+        function updateCounts() {
+            const counts = {
+                todo: tasks.filter(t => t.status === 'todo').length,
+                inprogress: tasks.filter(t => t.status === 'inprogress').length,
+                done: tasks.filter(t => t.status === 'done').length
+            };
+
+            document.getElementById('count-todo').textContent = counts.todo;
+            document.getElementById('count-inprogress').textContent = counts.inprogress;
+            document.getElementById('count-done').textContent = counts.done;
+        }
+
+        // ============ Edit Task ============
+        
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            currentEditId = id;
+            
+            // Set task type (disabled field)
+            document.getElementById('editTaskType').value = task.taskType || 'request';
+            
+            // Common fields
+            document.getElementById('editTaskTitle').value = task.title;
+            document.getElementById('editTaskDescription').value = task.description || '';
+            document.getElementById('editTaskCategory').value = task.category || '';
+            document.getElementById('editTaskStatus').value = task.status;
+            document.getElementById('editTaskPriority').value = task.priority || '';
+            
+            document.getElementById('editTaskCompany').value = task.companyId || '';
+            if (task.companyId) {
+                updateEditDepartmentDropdown(task.companyId);
+                document.getElementById('editTaskDepartment').value = task.departmentId || '';
+                if (task.departmentId) {
+                    updateEditPersonDropdown(task.companyId, task.departmentId);
+                    document.getElementById('editTaskPerson').value = task.assignedToId || '';
+                }
+            }
+
+            // Show/hide fields based on task type
+            if (task.taskType === 'request') {
+                document.getElementById('editRequestFields').style.display = 'block';
+                document.getElementById('editChangeFields').style.display = 'none';
+                
+                document.getElementById('editTaskRequester').value = task.requester || '';
+                document.getElementById('editTaskBusinessJustification').value = task.businessJustification || '';
+                document.getElementById('editTaskAffectedUsers').value = task.affectedUsers || '';
+                document.getElementById('editTaskExpectedCompletion').value = task.expectedCompletion || '';
+            } else if (task.taskType === 'change') {
+                document.getElementById('editChangeFields').style.display = 'block';
+                document.getElementById('editRequestFields').style.display = 'none';
+                
+                document.getElementById('editTaskChangeType').value = task.changeType || '';
+                document.getElementById('editTaskRiskLevel').value = task.riskLevel || '';
+                document.getElementById('editTaskImpactLevel').value = task.impactLevel || '';
+                document.getElementById('editTaskRollbackPlan').value = task.rollbackPlan || '';
+                document.getElementById('editTaskImplementationDate').value = task.implementationDate || '';
+            }
+
+            renderHistory(task.history);
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditId = null;
+        }
+
+        function saveTask() {
+            if (!currentEditId) return;
+
+            const task = tasks.find(t => t.id === currentEditId);
+            if (!task) return;
+
+            const newTitle = document.getElementById('editTaskTitle').value.trim();
+            const newDescription = document.getElementById('editTaskDescription').value.trim();
+            const newCategory = document.getElementById('editTaskCategory').value;
+            const newStatus = document.getElementById('editTaskStatus').value;
+            const newPriority = document.getElementById('editTaskPriority').value;
+            const newCompanyId = parseInt(document.getElementById('editTaskCompany').value) || null;
+            const newDepartmentId = parseInt(document.getElementById('editTaskDepartment').value) || null;
+            const newPersonId = parseInt(document.getElementById('editTaskPerson').value) || null;
+
+            const changes = [];
+            const fieldMap = {
+                'title': 'Başlık',
+                'description': 'Açıklama',
+                'category': 'Kategori',
+                'status': 'Durum',
+                'priority': 'Öncelik',
+                'company': 'Şirket',
+                'department': 'Departman',
+                'assignedTo': 'Atanan Kişi',
+                'changeType': 'Change Tipi',
+                'riskLevel': 'Risk Seviyesi',
+                'impactLevel': 'Etki Seviyesi',
+                'rollbackPlan': 'Rollback Planı',
+                'implementationDate': 'Uygulama Tarihi',
+                'requester': 'Talep Eden',
+                'businessJustification': 'İş Gerekçesi',
+                'affectedUsers': 'Etkilenen Kullanıcı',
+                'expectedCompletion': 'Beklenen Tamamlanma'
+            };
+
+            const statusMap = {
+                'todo': 'Yapılacak',
+                'inprogress': 'Devam Eden',
+                'done': 'Tamamlandı'
+            };
+
+            // Common fields
+            if (task.title !== newTitle) {
+                changes.push({ field: fieldMap.title, oldValue: task.title, newValue: newTitle });
+            }
+            if (task.description !== newDescription) {
+                changes.push({ field: fieldMap.description, oldValue: task.description, newValue: newDescription });
+            }
+            if (task.category !== newCategory) {
+                changes.push({ 
+                    field: fieldMap.category, 
+                    oldValue: getCategoryName(task.category), 
+                    newValue: getCategoryName(newCategory) 
+                });
+            }
+            if (task.status !== newStatus) {
+                changes.push({ 
+                    field: fieldMap.status, 
+                    oldValue: statusMap[task.status], 
+                    newValue: statusMap[newStatus] 
+                });
+            }
+            if (task.priority !== newPriority) {
+                changes.push({ 
+                    field: fieldMap.priority, 
+                    oldValue: getPriorityName(task.priority), 
+                    newValue: getPriorityName(newPriority) 
+                });
+            }
+            if (task.companyId !== newCompanyId) {
+                changes.push({ 
+                    field: fieldMap.company, 
+                    oldValue: getCompanyName(task.companyId), 
+                    newValue: getCompanyName(newCompanyId) 
+                });
+            }
+            if (task.departmentId !== newDepartmentId) {
+                changes.push({ 
+                    field: fieldMap.department, 
+                    oldValue: getDepartmentName(task.companyId, task.departmentId), 
+                    newValue: getDepartmentName(newCompanyId, newDepartmentId) 
+                });
+            }
+            if (task.assignedToId !== newPersonId) {
+                changes.push({ 
+                    field: fieldMap.assignedTo, 
+                    oldValue: getPersonName(task.companyId, task.departmentId, task.assignedToId), 
+                    newValue: getPersonName(newCompanyId, newDepartmentId, newPersonId) 
+                });
+            }
+
+            // Type-specific fields
+            if (task.taskType === 'request') {
+                const newRequester = document.getElementById('editTaskRequester').value.trim();
+                const newBusinessJustification = document.getElementById('editTaskBusinessJustification').value.trim();
+                const newAffectedUsers = parseInt(document.getElementById('editTaskAffectedUsers').value) || 0;
+                const newExpectedCompletion = document.getElementById('editTaskExpectedCompletion').value;
+
+                if (task.requester !== newRequester) {
+                    changes.push({ field: fieldMap.requester, oldValue: task.requester, newValue: newRequester });
+                }
+                if (task.businessJustification !== newBusinessJustification) {
+                    changes.push({ field: fieldMap.businessJustification, oldValue: task.businessJustification, newValue: newBusinessJustification });
+                }
+                if (task.affectedUsers !== newAffectedUsers) {
+                    changes.push({ field: fieldMap.affectedUsers, oldValue: task.affectedUsers, newValue: newAffectedUsers });
+                }
+                if (task.expectedCompletion !== newExpectedCompletion) {
+                    changes.push({ field: fieldMap.expectedCompletion, oldValue: task.expectedCompletion, newValue: newExpectedCompletion });
+                }
+
+                task.requester = newRequester;
+                task.businessJustification = newBusinessJustification;
+                task.affectedUsers = newAffectedUsers;
+                task.expectedCompletion = newExpectedCompletion;
+            } else if (task.taskType === 'change') {
+                const newChangeType = document.getElementById('editTaskChangeType').value;
+                const newRiskLevel = document.getElementById('editTaskRiskLevel').value;
+                const newImpactLevel = document.getElementById('editTaskImpactLevel').value;
+                const newRollbackPlan = document.getElementById('editTaskRollbackPlan').value.trim();
+                const newImplementationDate = document.getElementById('editTaskImplementationDate').value;
+
+                if (task.changeType !== newChangeType) {
+                    changes.push({ 
+                        field: fieldMap.changeType, 
+                        oldValue: getChangeTypeName(task.changeType), 
+                        newValue: getChangeTypeName(newChangeType) 
+                    });
+                }
+                if (task.riskLevel !== newRiskLevel) {
+                    changes.push({ 
+                        field: fieldMap.riskLevel, 
+                        oldValue: getRiskLevelName(task.riskLevel), 
+                        newValue: getRiskLevelName(newRiskLevel) 
+                    });
+                }
+                if (task.impactLevel !== newImpactLevel) {
+                    changes.push({ 
+                        field: fieldMap.impactLevel, 
+                        oldValue: getImpactLevelName(task.impactLevel), 
+                        newValue: getImpactLevelName(newImpactLevel) 
+                    });
+                }
+                if (task.rollbackPlan !== newRollbackPlan) {
+                    changes.push({ field: fieldMap.rollbackPlan, oldValue: task.rollbackPlan, newValue: newRollbackPlan });
+                }
+                if (task.implementationDate !== newImplementationDate) {
+                    changes.push({ field: fieldMap.implementationDate, oldValue: task.implementationDate, newValue: newImplementationDate });
+                }
+
+                task.changeType = newChangeType;
+                task.riskLevel = newRiskLevel;
+                task.impactLevel = newImpactLevel;
+                task.rollbackPlan = newRollbackPlan;
+                task.implementationDate = newImplementationDate;
+            }
+
+            // Update common fields
+            task.title = newTitle;
+            task.description = newDescription;
+            task.category = newCategory;
+            task.status = newStatus;
+            task.priority = newPriority;
+            task.companyId = newCompanyId;
+            task.departmentId = newDepartmentId;
+            task.assignedToId = newPersonId;
+
+            // Add to history if there are changes
+            if (changes.length > 0) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('tr-TR') + ' ' + 
+                               now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                
+                if (!task.history) {
+                    task.history = [];
+                }
+                
+                task.history.push({
+                    date: dateStr,
+                    changes: changes
+                });
+
+                renderTasks();
+                renderHistory(task.history);
+            } else {
+                renderTasks();
+            }
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('historyContainer');
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="history-empty">Henüz güncelleme yapılmamış</div>';
+                return;
+            }
+
+            container.innerHTML = history.map(item => {
+                const changesHtml = item.changes.map(change => `
+                    <div class="history-change">
+                        <strong>${change.field}:</strong>
+                        <span class="history-value">${change.oldValue || '-'}</span>
+                        <span class="history-arrow">→</span>
+                        <span class="history-value">${change.newValue || '-'}</span>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="history-item">
+                        <div class="history-date">📅 ${item.date}</div>
+                        <div class="history-changes">
+                            ${changesHtml}
+                        </div>
+                    </div>
+                `;
+            }).reverse().join('');
+        }
+
+        // ============ Drag & Drop ============
+        
+        document.querySelectorAll('.column').forEach(column => {
+            column.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+
+            column.addEventListener('dragleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+
+            column.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+
+                if (draggedElement) {
+                    const taskId = parseInt(draggedElement.dataset.id);
+                    const newStatus = this.dataset.status;
+
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task && task.status !== newStatus) {
+                        const statusMap = {
+                            'todo': 'Yapılacak',
+                            'inprogress': 'Devam Eden',
+                            'done': 'Tamamlandı'
+                        };
+
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('tr-TR') + ' ' + 
+                                       now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                        
+                        if (!task.history) {
+                            task.history = [];
+                        }
+                        
+                        task.history.push({
+                            date: dateStr,
+                            changes: [{
+                                field: 'Durum',
+                                oldValue: statusMap[task.status],
+                                newValue: statusMap[newStatus]
+                            }]
+                        });
+
+                        task.status = newStatus;
+                        renderTasks();
+                    }
+                }
+            });
+        });
+
+        // Modal close on outside click
+        document.getElementById('wizardModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeWizard();
+            }
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Initialize
+        populateWizardDropdowns();
+        populateEditDropdowns();
+        setupFieldValidation();
+        renderTasks();
+    </script>
+</body>
+</html>
