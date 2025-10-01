@@ -18,6 +18,18 @@ Modern ve kullanıcı dostu Kanban Board uygulaması. ITIL uyumlu Change Managem
 2. `kanban-board.html` dosyasını tarayıcıda açın
 3. Uygulama otomatik olarak `./data/` klasöründeki JSON dosyalarını yükler
 
+## Admin Panel
+
+Veri yönetimi için ayrı bir admin paneli mevcuttur:
+
+- **URL:** `admin.html`
+- **Özellikler:**
+  - 🏢 Şirket, Departman ve Personel CRUD işlemleri
+  - ⚙️ Konfigürasyon yönetimi (Change tipleri, Risk seviyeleri, vb.)
+  - 📤 JSON dosyalarını içe/dışa aktarma
+  - 📊 Veri özeti ve istatistikler
+  - 🎯 Kullanıcı dostu arayüz
+
 ## JSON Dosya Yapısı
 
 Uygulama 3 ana JSON dosyası kullanır:

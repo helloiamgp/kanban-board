@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - JSON Yönetimi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #212121;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 2px solid #e1e8ed;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #2c3e50;
+        }
+
+        .nav-btn:hover {
+            border-color: #0066cc;
+            background: #f0f8ff;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #7f8c8d;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #2c3e50;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8f9fa;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #212121;
+            background: white;
+            transition: all 0.15s;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border: 2px solid #0066cc;
+            padding: 9px 11px;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .nested-section {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .nested-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .nested-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .nested-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e1e8ed;
+        }
+
+        .nested-item-info {
+            flex: 1;
+        }
+
+        .nested-item-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .nested-item-detail {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            color: #f57c00;
+            border: 1px solid #ffb74d;
+        }
+
+        @media (max-width: 768px) {
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .navigation {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ Admin Panel</h1>
+        <p>JSON Veri Yönetimi</p>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn active" onclick="switchSection('companies')">🏢 Şirketler</button>
+        <button class="nav-btn" onclick="switchSection('config')">⚙️ Konfigürasyon</button>
+        <button class="nav-btn" onclick="switchSection('import-export')">💾 İçe/Dışa Aktar</button>
+        <button class="nav-btn" onclick="location.href='kanban-board.html'">← Kanban Board'a Dön</button>
+    </div>
+
+    <div class="container">
+        <!-- Companies Section -->
+        <div id="companies" class="section active">
+            <div class="section-header">
+                <h2 class="section-title">Şirket Yönetimi</h2>
+                <button class="btn btn-primary" onclick="openCompanyModal()">+ Yeni Şirket</button>
+            </div>
+
+            <div id="companiesList"></div>
+        </div>
+
+        <!-- Configuration Section -->
+        <div id="config" class="section">
+            <div class="section-header">
+                <h2 class="section-title">Konfigürasyon Yönetimi</h2>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>ℹ️ Bilgi:</strong> Change tipleri, risk seviyeleri, öncelikler ve kategorileri buradan yönetebilirsiniz.
+            </div>
+
+            <!-- Change Types -->
+            <div class="nested-section">
+                <div class="nested-header">
+                    <h3 class="nested-title">Change Tipleri</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('changeTypes')">+ Ekle</button>
+                </div>
+                <div id="changeTypesList"></div>
+            </div>
+
+            <!-- Risk Levels -->
+            <div class="nested-section">
+                <div class="nested-header">
+                    <h3 class="nested-title">Risk Seviyeleri</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('riskLevels')">+ Ekle</button>
+                </div>
+                <div id="riskLevelsList"></div>
+            </div>
+
+            <!-- Impact Levels -->
+            <div class="nested-section">
+                <div class="nested-header">
+                    <h3 class="nested-title">Etki Seviyeleri</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('impactLevels')">+ Ekle</button>
+                </div>
+                <div id="impactLevelsList"></div>
+            </div>
+
+            <!-- Priorities -->
+            <div class="nested-section">
+                <div class="nested-header">
+                    <h3 class="nested-title">Öncelikler</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('priorities')">+ Ekle</button>
+                </div>
+                <div id="prioritiesList"></div>
+            </div>
+
+            <!-- Categories -->
+            <div class="nested-section">
+                <div class="nested-header">
+                    <h3 class="nested-title">Kategoriler</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openConfigModal('categories')">+ Ekle</button>
+                </div>
+                <div id="categoriesList"></div>
+            </div>
+        </div>
+
+        <!-- Import/Export Section -->
+        <div id="import-export" class="section">
+            <div class="section-header">
+                <h2 class="section-title">İçe/Dışa Aktar</h2>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>⚠️ Dikkat:</strong> Dosya yükleme işlemi mevcut verilerin üzerine yazacaktır. İşlemi yapmadan önce yedek almanız önerilir.
+            </div>
+
+            <div class="file-actions">
+                <button class="btn btn-success" onclick="exportAllData()">📥 Tüm Verileri Dışa Aktar</button>
+                <button class="btn btn-primary" onclick="document.getElementById('importCompanies').click()">📤 Companies.json Yükle</button>
+                <button class="btn btn-primary" onclick="document.getElementById('importConfig').click()">📤 Config.json Yükle</button>
+                <button class="btn btn-primary" onclick="document.getElementById('importTasks').click()">📤 Tasks.json Yükle</button>
+            </div>
+
+            <input type="file" id="importCompanies" accept=".json" style="display: none;" onchange="importFile(this, 'companies')">
+            <input type="file" id="importConfig" accept=".json" style="display: none;" onchange="importFile(this, 'config')">
+            <input type="file" id="importTasks" accept=".json" style="display: none;" onchange="importFile(this, 'tasks')">
+
+            <div class="nested-section">
+                <h3 class="nested-title">Veri Özeti</h3>
+                <div id="dataSummary" style="margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Modal -->
+    <div class="modal" id="companyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="companyModalTitle">Yeni Şirket</h2>
+                <button class="close-btn" onclick="closeCompanyModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="companyId">
+                <div class="form-group">
+                    <label class="form-label">Şirket Adı</label>
+                    <input type="text" class="form-input" id="companyName" placeholder="Örn: ABC Teknoloji">
+                </div>
+
+                <!-- Departments -->
+                <div class="nested-section">
+                    <div class="nested-header">
+                        <h3 class="nested-title">Departmanlar</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openDepartmentModal()">+ Departman Ekle</button>
+                    </div>
+                    <div id="departmentsList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCompanyModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveCompany()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Modal -->
+    <div class="modal" id="departmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="departmentModalTitle">Yeni Departman</h2>
+                <button class="close-btn" onclick="closeDepartmentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="departmentId">
+                <div class="form-group">
+                    <label class="form-label">Departman Adı</label>
+                    <input type="text" class="form-input" id="departmentName" placeholder="Örn: IT">
+                </div>
+
+                <!-- Persons -->
+                <div class="nested-section">
+                    <div class="nested-header">
+                        <h3 class="nested-title">Personel</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openPersonModal()">+ Personel Ekle</button>
+                    </div>
+                    <div id="personsList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDepartmentModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveDepartment()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Person Modal -->
+    <div class="modal" id="personModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="personModalTitle">Yeni Personel</h2>
+                <button class="close-btn" onclick="closePersonModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="personId">
+                <div class="form-group">
+                    <label class="form-label">Ad Soyad</label>
+                    <input type="text" class="form-input" id="personName" placeholder="Örn: Ahmet Yılmaz">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-posta</label>
+                    <input type="email" class="form-input" id="personEmail" placeholder="Örn: ahmet@abc.com">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePersonModal()">İptal</button>
+                <button class="btn btn-primary" onclick="savePerson()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Item Modal -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="configModalTitle">Yeni Öğe</h2>
+                <button class="close-btn" onclick="closeConfigModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="configType">
+                <input type="hidden" id="configItemId">
+                <div class="form-group">
+                    <label class="form-label">ID</label>
+                    <input type="text" class="form-input" id="configItemIdValue" placeholder="Örn: high">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ad</label>
+                    <input type="text" class="form-input" id="configItemName" placeholder="Örn: Yüksek Öncelik">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfigModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveConfigItem()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
